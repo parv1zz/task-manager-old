@@ -97,7 +97,7 @@
           <v-card-subtitle v-if="currentTask.allDay">All day</v-card-subtitle>
           <v-card-text>
             <div class="d-flex align-center ga-2">
-              <v-badge ref="badge" class="mx-n1" inline :color="currentTask.backgroundColor"></v-badge>
+              <v-badge class="mx-n1" inline :color="currentTask.backgroundColor"></v-badge>
               <h3 style="font-size: 20px;">{{ currentTask.title }}</h3>
             </div>
             <div v-if="currentTask.allDay" class="mt-2 text-body-2">{{ `${currentTask.start.getDate()} ${new Intl.DateTimeFormat('en', { month: 'short' }).format(currentTask.start)} ${currentTask.start.getFullYear()}` }}</div>
@@ -122,7 +122,7 @@
       </template>
     </v-dialog>
     <!-- edit task dialog -->
-    <v-dialog v-model="taskEditOpen" @afterLeave="console.log(currentTask)" max-width="500">
+    <v-dialog v-model="taskEditOpen" @after-leave="formEdit.reset()" max-width="500">
       <template v-slot:default="{ isActive }">
         <v-card title="Edit task">
           <v-card-text class="pb-0">
@@ -308,7 +308,6 @@ function cancel(isActive) {
 const taskInfoOpen = ref(false)
 const currentTask = ref({})
 const taskEditOpen = ref(false)
-const badge = ref()
 
 const formEdit = ref()
 const titleEdit = ref('')
