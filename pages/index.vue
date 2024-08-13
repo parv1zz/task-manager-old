@@ -1,22 +1,21 @@
 <template>
   <v-app>
-    <!-- <div>{{ calendarTasks }}</div> -->
     <div class="container overflow-hidden">
       <div>
         <FullCalendar
-          ref="calendar"
-          :options="calendarOptions"
+          ref="calendarMain"
+          :options="calendarMainOptions"
           >
         </FullCalendar>
       </div>
     </div>
 
     <!-- add task dialog -->
-    <v-dialog activator=".fc-addTask-button" max-width="500">
+    <v-dialog activator=".fc-addTask-button" @afterLeave="formAdd.reset()" max-width="600">
       <template v-slot:default="{ isActive }">
         <v-card title="Add task">
           <v-card-text class="pb-0">
-            <v-form ref="form">
+            <v-form ref="formAdd">
               <v-container class="pa-0">
                 <v-row>
                   <v-col>
@@ -29,34 +28,54 @@
                     />
                   </v-col>
                   <v-col>
-                    <v-text-field
+                    <v-select
                       v-model="color"
-                      :rules="rules"
+                      :items="colors"
                       label="Color"
-                      required
                       persistent-placeholder
-                    />
+                    >
+                      <template v-slot:append-item>
+                        <v-divider></v-divider>
+                        <v-list-item ref="pickColorBtn" @click="">pick color</v-list-item>
+                      </template>
+                    </v-select>
                   </v-col>
                 </v-row>
                 <v-row v-if="!allDay">
-                  <v-col class="pt-0">
+                  <v-col class="pt-0 d-flex justify-space-between ga-2">
                     <v-text-field
+                      max-width="160"
                       v-model="start"
+                      required
                       :rules="dateRules"
                       label="Start"
-                      required
                       persistent-placeholder
-                      placeholder="yyyy-mm-dd hh:mm"
+                      type="date"
+                    />
+                    <v-text-field
+                      max-width="100"
+                      v-model="startTime"
+                      label="Time"
+                      persistent-placeholder
+                      type="time"
                     />
                   </v-col>
-                  <v-col class="pt-0">
+                  <v-col class="pt-0 d-flex justify-space-between ga-2">
                     <v-text-field
+                      max-width="160"
                       v-model="end"
+                      required
                       :rules="dateRules"
                       label="End"
-                      required
                       persistent-placeholder
-                      placeholder="yyyy-mm-dd hh:mm"
+                      type="date"
+                    />
+                    <v-text-field
+                      max-width="100"
+                      v-model="endTime"
+                      label="Time"
+                      persistent-placeholder
+                      type="time"
                     />
                   </v-col>
                 </v-row>
@@ -64,11 +83,11 @@
                   <v-col class="pt-0">
                     <v-text-field
                       v-model="start"
-                      :rules="dateRules"
-                      label="Date"
                       required
+                      :rules="rules"
+                      label="Date"
                       persistent-placeholder
-                      placeholder="yyyy-mm-dd"
+                      type="date"
                     />
                   </v-col>
                 </v-row>
@@ -82,8 +101,8 @@
               @click="addTask(isActive)"
             ></v-btn>
             <v-btn
-              text="Close"
-              @click="cancel(isActive)"
+              text="Cancel"
+              @click="closeAddTask(isActive)"
             ></v-btn>
           </v-card-actions>
         </v-card>
@@ -116,13 +135,13 @@
           </v-card-text>
           <v-card-actions>
             <v-btn icon="mdi-pencil" @click="editClick"></v-btn>
-            <v-btn icon="mdi-delete" @click="deleteTask"></v-btn>
+            <v-btn icon="mdi-delete" @click="deleteTask(isActive)"></v-btn>
           </v-card-actions>
         </v-card>
       </template>
     </v-dialog>
     <!-- edit task dialog -->
-    <v-dialog v-model="taskEditOpen" @after-leave="formEdit.reset()" max-width="500">
+    <v-dialog v-model="taskEditOpen" @after-leave="formEdit.reset()" max-width="600">
       <template v-slot:default="{ isActive }">
         <v-card title="Edit task">
           <v-card-text class="pb-0">
@@ -131,7 +150,7 @@
                 <v-row>
                   <v-col>
                     <v-text-field
-                      v-model="titleEdit"
+                      v-model="title"
                       :rules="rules"
                       label="Title"
                       required
@@ -139,51 +158,73 @@
                     />
                   </v-col>
                   <v-col>
-                    <v-text-field
-                      v-model="colorEdit"
+                    <v-select
+                      v-model="color"
+                      :items="colors"
                       :rules="rules"
                       label="Color"
                       required
                       persistent-placeholder
-                    />
+                    >
+                      <template v-slot:append-item>
+                        <v-divider></v-divider>
+                        <v-list-item ref="pickColorBtn" @click="">pick color</v-list-item>
+                      </template>
+                    </v-select>
                   </v-col>
                 </v-row>
-                <v-row v-if="!allDayEdit">
-                  <v-col class="pt-0">
+                <v-row v-if="!allDay">
+                  <v-col class="pt-0 d-flex justify-space-between ga-2">
                     <v-text-field
-                      v-model="startEdit"
+                      max-width="160"
+                      v-model="start"
+                      required
                       :rules="dateRules"
                       label="Start"
-                      required
                       persistent-placeholder
-                      placeholder="yyyy-mm-dd hh:mm"
+                      type="date"
+                    />
+                    <v-text-field
+                      max-width="100"
+                      v-model="startTime"
+                      label="Time"
+                      persistent-placeholder
+                      type="time"
                     />
                   </v-col>
-                  <v-col class="pt-0">
+                  <v-col class="pt-0 d-flex justify-space-between ga-2">
                     <v-text-field
-                      v-model="endEdit"
+                      max-width="160"
+                      v-model="end"
+                      required
                       :rules="dateRules"
                       label="End"
-                      required
                       persistent-placeholder
-                      placeholder="yyyy-mm-dd hh:mm"
+                      type="date"
+                    />
+                    <v-text-field
+                      max-width="100"
+                      v-model="endTime"
+                      label="Time"
+                      persistent-placeholder
+                      type="time"
                     />
                   </v-col>
                 </v-row>
-                <v-row v-if="allDayEdit">
+                <v-row v-if="allDay">
                   <v-col class="pt-0">
                     <v-text-field
-                      v-model="startEdit"
-                      :rules="dateRules"
-                      label="Date"
+                      v-model="start"
                       required
+                      :rules="rules"
+                      label="Date"
                       persistent-placeholder
-                      placeholder="yyyy-mm-dd"
+                      type="date"
                     />
                   </v-col>
                 </v-row>
               </v-container>
-              <v-checkbox v-model="allDayEdit" label="All day" hide-details></v-checkbox>
+              <v-checkbox v-model="allDay" label="All day" hide-details></v-checkbox>
             </v-form>
           </v-card-text>
           <v-card-actions>
@@ -193,7 +234,27 @@
             ></v-btn>
             <v-btn
               text="Cancel"
-              @click="cancelEdit(isActive)"
+              @click="closeEditTask(isActive)"
+            ></v-btn>
+          </v-card-actions>
+        </v-card>
+      </template>
+    </v-dialog>
+    <!-- color pick dialog -->
+    <v-dialog :activator="pickColorBtn" @afterLeave="pickerColor='';" max-width="332">
+      <template v-slot:default="{ isActive }">
+        <v-card>
+          <v-card-text class="pa-4">
+            <v-color-picker v-model="pickerColor" hide-inputs></v-color-picker>
+          </v-card-text>
+          <v-card-actions>            
+            <v-btn
+              text="Pick"
+              @click="pickColor(isActive)"
+            ></v-btn>
+            <v-btn
+              text="Close"
+              @click="isActive.value = false"
             ></v-btn>
           </v-card-actions>
         </v-card>
@@ -207,8 +268,9 @@ import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
+import listPlugin from '@fullcalendar/list'
 
-const calendar = ref()
+const calendarMain = ref()
 
 let taskId;
 function createTaskId() {
@@ -226,7 +288,7 @@ onMounted(() => {
 
   if(tasks) {
     for(let i = 0; i < tasks.length; i++) {
-      calendar.value.getApi().addEvent(tasks[i])
+      calendarMain.value.getApi().addEvent(tasks[i])
     }
   }
 })
@@ -235,12 +297,13 @@ watch(calendarTasks, async(newCalendarTasks, oldCalendarTasks) => {
   localStorage.setItem('calendarTasks', JSON.stringify(newCalendarTasks))
 })
 
-const calendarOptions = ref({
-  plugins: [ dayGridPlugin, timeGridPlugin, interactionPlugin ],
+const calendarMainOptions = ref({
+  plugins: [ dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin ],
   initialView: 'dayGridMonth',
   events: calendarTasks.value,
   fixedWeekCount: false,
   snapDuration: '00:15:00',
+  firstDay: 1,
 
   height: '100vh',
 
@@ -253,7 +316,7 @@ const calendarOptions = ref({
   headerToolbar: {
     left: 'prev,next today',
     center: 'title',
-    right: 'dayGridMonth,timeGridWeek,timeGridDay addTask',
+    right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth addTask',
   },
 
   editable: true,
@@ -261,8 +324,9 @@ const calendarOptions = ref({
   navLinks: true,
   eventsSet: updateTasks,
   navLinkDayClick: function(date, jsEvent) {
-    calendar.value.getApi().changeView('timeGridDay')
-    calendar.value.getApi().gotoDate(date)
+    let api = calendarMain.value.getApi()
+    api.changeView('timeGridDay')
+    api.gotoDate(date)
   },
   eventClick: showTaskInfo
 })
@@ -270,51 +334,82 @@ function updateTasks(events) {
   calendarTasks.value = events
 }
 
-const form = ref()
+// add task
+const formAdd = ref()
+const pickColorBtn = ref()
+const colors = ref(['red', 'green', 'blue', 'orange', 'purple',])
+const pickerColor = ref('')
+function pickColor(isActive) {
+  color.value = pickerColor.value
+  isActive.value = false
+}
+
 const title = ref('')
 const start = ref('')
+const startTime = ref('')
 const end = ref('')
+const endTime = ref('')
 const color = ref('')
 const allDay = ref(false)
-const rules = ref([v => !!v || 'required'])
-const dateRules = ref([
-  v => !!v || 'required',
-  v => (v && !isNaN(new Date(v))) || 'date is not valid',
-])
+const checkValue = v => !!v || 'required'
+const compareStartEnd = () => {
+  if(start.value && end.value) {
+    return ((new Date(start.value).getTime() <= new Date(end.value).getTime()) && (start.value != '' || end.value != '')) || 'wrong dates'
+  } else {
+    return ''
+  }
+}
+const rules = ref([checkValue])
+const dateRules = ref([checkValue , compareStartEnd])
+
 async function addTask(isActive) {
-  const { valid } = await form.value.validate()
+  const { valid } = await formAdd.value.validate()
 
   if(valid) {
+    let taskStart = ''
+    let taskEnd = ''
+    if(startTime.value) {
+      taskStart = start.value + ' ' + startTime.value
+    } else {
+      taskStart = start.value + ' 00:00'
+    }
+    if(endTime.value) {
+      taskEnd = end.value + ' ' + endTime.value
+    } else {
+      if(start.value == end.value) {
+        taskEnd = end.value + ' 01:00'
+      } else {
+        taskEnd = end.value + ' 00:00'
+      }
+    }
+    if(startTime.value && !endTime.value) {
+      taskEnd = end.value + ' ' + String(Number.parseInt(startTime.value.split(':')[0]) + 1) + ':' + startTime.value.split(':')[1]
+    }
+
     let newTask =  {
       id: createTaskId(),
       title: title.value,
-      start: new Date(start.value).getTime(),
-      end: new Date(end.value).getTime(),
-      color: color.value,
+      start: new Date(taskStart).getTime(),
+      end: new Date(taskEnd).getTime(),
+      color: color.value ? color.value : 'blue',
       allDay: allDay.value,
     }
-    
-    calendar.value.getApi().addEvent(newTask)
-    cancel(isActive)
+
+    calendarMain.value.getApi().addEvent(newTask)
+    closeAddTask(isActive)
   }
 }
-function cancel(isActive) {
-  form.value.reset()
+function closeAddTask(isActive) {
+  formAdd.value.reset()
   isActive.value = false
-  start.value = ''
-  end.value = ''
 }
 
+// task info and edit
 const taskInfoOpen = ref(false)
 const currentTask = ref({})
 const taskEditOpen = ref(false)
 
 const formEdit = ref()
-const titleEdit = ref('')
-const startEdit = ref('')
-const endEdit = ref('')
-const colorEdit = ref('')
-const allDayEdit = ref(false)
 
 function showTaskInfo(eventClickInfo) {
   taskInfoOpen.value = true
@@ -323,20 +418,23 @@ function showTaskInfo(eventClickInfo) {
 function checkDays(day1, day2) {
   return new Date(`${new Date(day1).getFullYear()} ${new Date(day1).getMonth()+1} ${new Date(day1).getDate()}`).getTime() == new Date(`${new Date(day2).getFullYear()} ${new Date(day2).getMonth()+1} ${new Date(day2).getDate()}`).getTime()
 }
-function deleteTask() {
-  calendar.value.getApi().getEventById(currentTask.value.id).remove()
-  taskInfoOpen.value = false
+function deleteTask(isActive) {
+  calendarMain.value.getApi().getEventById(currentTask.value.id).remove()
+  isActive.value = false
 }
 function editClick() {
-  titleEdit.value = currentTask.value.title
-  colorEdit.value = currentTask.value.backgroundColor
-  allDayEdit.value = currentTask.value.allDay
+  title.value = currentTask.value.title
+  color.value = currentTask.value.backgroundColor
+  allDay.value = currentTask.value.allDay
 
   if(currentTask.value.allDay) {
-    startEdit.value = currentTask.value.start.getFullYear() + '-' + (currentTask.value.start.getMonth()+1) + '-' + currentTask.value.start.getDate()
+    start.value = currentTask.value.start.getFullYear() + '-' + (currentTask.value.start.getMonth()+1 < 10 ? `0${currentTask.value.start.getMonth()+1}` : currentTask.value.start.getMonth()+1) + '-' + (currentTask.value.start.getDate() < 10 ? `0${currentTask.value.start.getDate()}` : currentTask.value.start.getDate())
   } else {
-    startEdit.value = currentTask.value.start.getFullYear() + '-' + (currentTask.value.start.getMonth()+1) + '-' + currentTask.value.start.getDate() + ' ' + currentTask.value.start.getHours() + ':' + (currentTask.value.start.getMinutes() < 10 ? `0${currentTask.value.start.getMinutes()}` : currentTask.value.start.getMinutes())
-    endEdit.value = currentTask.value.end.getFullYear() + '-' + (currentTask.value.end.getMonth()+1) + '-' + currentTask.value.end.getDate() + ' ' + currentTask.value.end.getHours() + ':' + (currentTask.value.start.getMinutes() < 10 ? `0${currentTask.value.start.getMinutes()}` : currentTask.value.start.getMinutes())
+    start.value = currentTask.value.start.getFullYear() + '-' + (currentTask.value.start.getMonth()+1 < 10 ? `0${currentTask.value.start.getMonth()+1}` : currentTask.value.start.getMonth()+1) + '-' + (currentTask.value.start.getDate() < 10 ? `0${currentTask.value.start.getDate()}` : currentTask.value.start.getDate())
+    startTime.value = (currentTask.value.start.getHours() < 10 ? `0${currentTask.value.start.getHours()}` : currentTask.value.start.getHours()) + ':' + (currentTask.value.start.getMinutes() < 10 ? `0${currentTask.value.start.getMinutes()}` : currentTask.value.start.getMinutes())
+
+    end.value = currentTask.value.end.getFullYear() + '-' + (currentTask.value.end.getMonth()+1 < 10 ? `0${currentTask.value.end.getMonth()+1}` : currentTask.value.end.getMonth()+1) + '-' + (currentTask.value.end.getDate() < 10 ? `0${currentTask.value.end.getDate()}` : currentTask.value.end.getDate())
+    endTime.value = (currentTask.value.end.getHours() < 10 ? `0${currentTask.value.end.getHours()}` : currentTask.value.end.getHours()) + ':' + (currentTask.value.end.getMinutes() < 10 ? `0${currentTask.value.end.getMinutes()}` : currentTask.value.end.getMinutes())
   }
   taskEditOpen.value = true
 }
@@ -344,24 +442,43 @@ async function editTask(isActive) {
   const { valid } = await formEdit.value.validate()
 
   if(valid) {
-    calendar.value.getApi().getEventById(currentTask.value.id).setProp('title', titleEdit.value)
-    calendar.value.getApi().getEventById(currentTask.value.id).setProp('color', colorEdit.value)
-    calendar.value.getApi().getEventById(currentTask.value.id).setAllDay(allDayEdit.value)
-    if(allDayEdit.value) {
-      calendar.value.getApi().getEventById(currentTask.value.id).setStart(new Date(startEdit.value).getTime(), { maintainDuration: true })
+    let api = calendarMain.value.getApi()
+    api.getEventById(currentTask.value.id).setProp('title', title.value)
+    api.getEventById(currentTask.value.id).setProp('color', color.value)
+    api.getEventById(currentTask.value.id).setAllDay(allDay.value)
+    if(allDay.value) {
+      api.getEventById(currentTask.value.id).setStart(new Date(start.value).getTime(), { maintainDuration: true })
     } else {
-      calendar.value.getApi().getEventById(currentTask.value.id).setStart(new Date(startEdit.value).getTime())
-      calendar.value.getApi().getEventById(currentTask.value.id).setEnd(new Date(endEdit.value).getTime())
+      let taskStart = ''
+      let taskEnd = ''
+      if(startTime.value) {
+        taskStart = start.value + ' ' + startTime.value
+      } else {
+        taskStart = start.value + ' 00:00'
+      }
+      if(endTime.value) {
+        taskEnd = end.value + ' ' + endTime.value
+      } else {
+        if(start.value == end.value) {
+          taskEnd = end.value + ' 01:00'
+        } else {
+          taskEnd = end.value + ' 00:00'
+        }
+      }
+      if(startTime.value && !endTime.value) {
+        taskEnd = end.value + ' ' + String(Number.parseInt(startTime.value.split(':')[0]) + 1) + ':' + startTime.value.split(':')[1]
+      }
+
+      api.getEventById(currentTask.value.id).setStart(new Date(taskStart).getTime())
+      api.getEventById(currentTask.value.id).setEnd(new Date(taskEnd).getTime())
     }
     
     taskInfoOpen.value = false
-    cancelEdit(isActive)
+    closeEditTask(isActive)
   }
 }
-function cancelEdit(isActive) {
+function closeEditTask(isActive) {
   formEdit.value.reset()
   isActive.value = false
-  startEdit.value = ''
-  endEdit.value = ''
 }
 </script>
