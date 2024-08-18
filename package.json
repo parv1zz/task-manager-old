@@ -17,6 +17,7 @@
     "@fullcalendar/timegrid": "^6.1.15",
     "@fullcalendar/vue3": "^6.1.15",
     "@mdi/font": "^7.4.47",
+    "@nuxtjs/i18n": "^8.4.0",
     "nuxt": "^3.12.4",
     "vue": "latest"
   },
