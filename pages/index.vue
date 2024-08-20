@@ -1,76 +1,113 @@
 <template>
   <v-app>
-    <div class="mb-6 pa-2 bg-grey-lighten-3">
-      <v-select
-        width="90"
-        :items="locales"
-        v-model="appLocale"
-        density="compact"
-        variant="outlined"
-        hide-details
-      ></v-select>
-    </div>
-    <div class="container overflow-hidden">
-      <div>
-        <!-- header toolbar -->
-        <div class="d-flex justify-space-between mb-6">
-          <div>
-            <v-btn
-              icon="mdi-chevron-left"
-              size="small"
-              variant="outlined"
-              color="#2c3e50"
-              @click="calendarMain.getApi().prev()"
-            ></v-btn>
-            <v-btn
-              icon="mdi-chevron-right"
-              size="small"
-              variant="outlined"
-              class="ml-1"
-              color="#2c3e50"
-              @click="calendarMain.getApi().next()"
-              ></v-btn>
-            <v-btn
-              height="40"
-              color="#2c3e50"
-              elevation="0"
-              class="ml-3"
-              slim
-              @click="calendarMain.getApi().today()"
-            >{{ $t('today') }}</v-btn>
-          </div>
-          <div id="today-title"></div>
-          <div class="d-flex ga-3">
-            <v-select
-              :items="calendarViewModes"
-              v-model="calendarViewMode"
-              density="compact"
-              variant="outlined"
-              hide-details
-            >
-              <template v-slot:item="{ props, item }">
-                <v-list-item v-bind="props" :title="$t(item.title)"></v-list-item>
-              </template>
-              <template v-slot:selection="{ item, index }">
-                {{ $t(item.title) }}
-              </template>
-            </v-select>
-            <v-btn
-              height="40"
-              color="#2c3e50"
-              elevation="0"
-              slim
-              prepend-icon="mdi-plus"
-              @click="addTaskClick"
-            >{{ $t('addTask') }}</v-btn>
-          </div>
-        </div>
-        <FullCalendar
-          ref="calendarMain"
-          :options="calendarMainOptions"
-        >
-        </FullCalendar>
+    <div style="height: 100vh;" class="overflow-hidden d-flex flex-column">
+      <!-- lang select -->
+      <div class="mb-6 bg-grey-lighten-3">
+        <Container class="pa-2">
+          <v-select
+            width="100"
+            :items="locales"
+            v-model="appLocale"
+            density="compact"
+            variant="outlined"
+            hide-details
+          >
+            <template v-slot:item="{ props, item }">
+              <v-list-item v-bind="props" :title="item.title">
+                <template v-slot:prepend>
+                  <v-list-item-action>
+                    <img v-if="item.title == 'en'" width="25" src="https://humresdb.com/languages/imgList/en.svg" />
+                    <img v-if="item.title == 'ru'" width="25" src="https://humresdb.com/languages/imgList/ru.svg" />
+                  </v-list-item-action>
+                </template>
+              </v-list-item>
+            </template>
+            <template v-slot:selection="{ item, index }">
+              <img class="ml-n1" v-if="item.title == 'en'" width="25" src="https://humresdb.com/languages/imgList/en.svg" />
+              <img class="ml-n1" v-if="item.title == 'ru'" width="25" src="https://humresdb.com/languages/imgList/ru.svg" />
+              <div class="ml-2">{{ item.title }}</div>
+            </template>
+          </v-select>
+        </Container>
       </div>
+
+      <Container class="flex-grow-1">
+        <!-- calendar -->
+        <div class="h-100 d-flex flex-column pa-2">
+          <!-- header toolbar -->
+          <div class="d-flex justify-space-between mb-6">
+            <div>
+              <v-btn
+                icon="mdi-chevron-left"
+                size="small"
+                variant="outlined"
+                color="#2c3e50"
+                @click="calendarMain.getApi().prev()"
+              ></v-btn>
+              <v-btn
+                icon="mdi-chevron-right"
+                size="small"
+                variant="outlined"
+                class="ml-1"
+                color="#2c3e50"
+                @click="calendarMain.getApi().next()"
+                ></v-btn>
+              <v-btn
+                height="40"
+                color="#2c3e50"
+                elevation="0"
+                class="ml-3"
+                slim
+                @click="calendarMain.getApi().today()"
+              >{{ $t('today') }}</v-btn>
+            </div>
+            <div id="today-title"></div>
+            <div class="d-flex ga-3">
+              <v-select
+                :items="calendarViewModes"
+                v-model="calendarViewMode"
+                density="compact"
+                variant="outlined"
+                hide-details
+              >
+                <template v-slot:item="{ props, item }">
+                  <v-list-item v-bind="props" :title="$t(item.title)">
+                    <template v-slot:prepend>
+                      <v-list-item-action>
+                        <v-icon v-if="item.title == 'month'" icon="mdi-calendar-month"></v-icon>
+                        <v-icon v-if="item.title == 'week'" icon="mdi-calendar-week"></v-icon>
+                        <v-icon v-if="item.title == 'day'" icon="mdi-calendar-today"></v-icon>
+                        <v-icon v-if="item.title == 'list'" icon="mdi-list-box-outline"></v-icon>
+                      </v-list-item-action>
+                    </template>
+                  </v-list-item>
+                </template>
+                <template v-slot:selection="{ item, index }">
+                  <v-icon v-if="item.title == 'month'" icon="mdi-calendar-month"></v-icon>
+                  <v-icon v-if="item.title == 'week'" icon="mdi-calendar-week"></v-icon>
+                  <v-icon v-if="item.title == 'day'" icon="mdi-calendar-today"></v-icon>
+                  <v-icon v-if="item.title == 'list'" icon="mdi-list-box-outline"></v-icon>
+                  <div class="ml-3">{{ $t(item.title) }}</div>
+                </template>
+              </v-select>
+              <v-btn
+                height="40"
+                color="#2c3e50"
+                elevation="0"
+                slim
+                prepend-icon="mdi-plus"
+                @click="addTaskClick"
+              >{{ $t('addTask') }}</v-btn>
+            </div>
+          </div>
+          <!-- calendar tasks -->
+          <FullCalendar
+            ref="calendarMain"
+            :options="calendarMainOptions"
+          >
+          </FullCalendar>
+        </div>
+      </Container>
     </div>
 
     <!-- task form dialog -->
@@ -98,9 +135,16 @@
                       persistent-placeholder
                     >
                       <template v-slot:item="{ props, item }">
-                        <v-list-item v-bind="props" :title="$t(item.title)"></v-list-item>
+                        <v-list-item v-bind="props" :title="$t(item.title)">
+                          <template v-slot:prepend>
+                            <v-list-item-action>
+                              <v-badge inline :color="item.value"></v-badge>
+                            </v-list-item-action>
+                          </template>
+                        </v-list-item>
                       </template>
                       <template v-slot:selection="{ item, index }">
+                        <v-badge class="ml-n1 mr-2" inline :color="item.value"></v-badge>
                         {{ $te(item.title) ? $t(item.title) : item.title }}
                       </template>
                       <template v-slot:append-item>
@@ -251,6 +295,8 @@
 </template>
 
 <script setup>
+import container from '~/components/container.vue'
+
 // locale
 const { locale, setLocale } = useI18n()
 import { t } from '@/scripts/locale'
@@ -274,7 +320,7 @@ const calendarTasks = ref([])
 
 // locales
 const locales = ref(['en', 'ru'])
-const appLocale = ref('')
+const appLocale = ref('en') // default locale
 watch(appLocale, async (newValue, oldValue) => {
   calendarMain.value.getApi().setOption('locale', newValue)
   setLocale(newValue)
@@ -292,7 +338,9 @@ function createTaskId() {
 // mounted
 onMounted(() => {
   // get locale
-  appLocale.value = localStorage.getItem('locale')
+  if(localStorage.getItem('locale')) {
+    appLocale.value = localStorage.getItem('locale')
+  }
   // set locale
   setLocale(appLocale.value)
   calendarMain.value.getApi().setOption('locale', appLocale.value)
@@ -312,6 +360,8 @@ onMounted(() => {
   // today title
   document.getElementById('today-title').appendChild(document.querySelector('.fc-toolbar-title'))
   document.querySelector('.fc-header-toolbar').style.display = 'none'
+
+  calendarMain.value.getApi().updateSize()
 })
 
 watch(calendarTasks, async (newCalendarTasks, oldCalendarTasks) => {
@@ -327,7 +377,7 @@ const calendarMainOptions = ref({
   fixedWeekCount: false,
   weekNumbers: true,
   snapDuration: '00:15:00',
-  height: '100vh',
+  height: '100%',
   locales: allLocales,
   locale: appLocale.value,
 
@@ -337,10 +387,13 @@ const calendarMainOptions = ref({
     right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth',
   },
 
+  // editable
   editable: true,
-  dayMaxEvents: true,
-  navLinks: true,
   eventsSet: updateTasks,
+  // 
+  dayMaxEvents: true,
+  // navs
+  navLinks: true,
   navLinkDayClick: function(date, jsEvent) {
     let api = calendarMain.value.getApi()
     api.changeView('timeGridDay')
@@ -351,9 +404,11 @@ const calendarMainOptions = ref({
   navLinkWeekClick: function() {
     calendarViewMode.value = 'timeGridWeek'
   },
+  // 
   eventClick: showTaskInfo,
+  // select
   selectable: true,
-  dateClick: dateClick,
+  select: selectClick
 })
 function updateTasks(events) {
   calendarTasks.value = events
@@ -427,7 +482,7 @@ watch(() => formTask.value.endTime, async (newValidationCounter, oldValidationCo
 // color picker
 const pickColorBtn = ref()
 const colors = ref([
-{
+  {
     title: 'red',
     value: '#F44336',
   },
@@ -450,7 +505,9 @@ const colors = ref([
 ])
 const pickerColor = ref('')
 function pickColor(isActive) {
-  formTask.value.color = pickerColor.value
+  if(pickerColor.value) {
+    formTask.value.color = pickerColor.value
+  }
   isActive.value = false
 }
 
@@ -458,8 +515,9 @@ function pickColor(isActive) {
 function addTaskClick() {
   taskFormEditing.value = false
   taskFormOpen.value = true
-  formTask.value.color = '#2196F3'
+  formTask.value.color = colors.value[2].value
   formTask.value.start = new Date().getFullYear() + '-' + (new Date().getMonth()+1 < 10 ? `0${new Date().getMonth()+1}` : new Date().getMonth()+1) + '-' + (new Date().getDate() < 10 ? `0${new Date().getDate()}` : new Date().getDate())
+  formTask.value.startTime = '00:00'
 }
 async function addTask(isActive) {
   const { valid } = await taskForm.value.validate()
@@ -490,7 +548,7 @@ async function addTask(isActive) {
       title: formTask.value.title,
       start: new Date(taskStart).getTime(),
       end: new Date(taskEnd).getTime(),
-      color: formTask.value.color ? formTask.value.color : '#2196F3',
+      color: formTask.value.color,
       allDay: formTask.value.allDay,
     }
 
@@ -498,11 +556,26 @@ async function addTask(isActive) {
     closeAddTask(isActive)
   }
 }
-function dateClick(dateClickInfo) {
+function selectClick(selectInfo) {  
   taskFormEditing.value = false
   taskFormOpen.value = true
-  formTask.value.color = '#2196F3'
-  formTask.value.start = dateClickInfo.date.getFullYear() + '-' + (dateClickInfo.date.getMonth()+1 < 10 ? `0${dateClickInfo.date.getMonth()+1}` : dateClickInfo.date.getMonth()+1) + '-' + (dateClickInfo.date.getDate() < 10 ? `0${dateClickInfo.date.getDate()}` : dateClickInfo.date.getDate())
+  formTask.value.color = colors.value[2].value
+  formTask.value.start = selectInfo.start.getFullYear() + '-' + (selectInfo.start.getMonth()+1 < 10 ? `0${selectInfo.start.getMonth()+1}` : selectInfo.start.getMonth()+1) + '-' + (selectInfo.start.getDate() < 10 ? `0${selectInfo.start.getDate()}` : selectInfo.start.getDate())
+  formTask.value.startTime = (selectInfo.start.getHours() < 10 ? `0${selectInfo.start.getHours()}` : selectInfo.start.getHours()) + ':' + (selectInfo.start.getMinutes() < 10 ? `0${selectInfo.start.getMinutes()}` : selectInfo.start.getMinutes())
+  
+  if(selectInfo.allDay){
+    formTask.value.allDay = selectInfo.allDay
+  } else {
+    formTask.value.allDay = selectInfo.allDay
+    if(calendarViewMode.value !== 'dayGridMonth') {
+      formTask.value.end = selectInfo.end.getFullYear() + '-' + (selectInfo.end.getMonth()+1 < 10 ? `0${selectInfo.end.getMonth()+1}` : selectInfo.end.getMonth()+1) + '-' + (selectInfo.end.getDate() < 10 ? `0${selectInfo.end.getDate()}` : selectInfo.end.getDate())
+      formTask.value.endTime = (selectInfo.end.getHours() < 10 ? `0${selectInfo.end.getHours()}` : selectInfo.end.getHours()) + ':' + (selectInfo.end.getMinutes() < 10 ? `0${selectInfo.end.getMinutes()}` : selectInfo.end.getMinutes())
+    }
+  }
+  if(calendarViewMode.value == 'dayGridMonth') {
+    formTask.value.allDay = false
+  }
+
   calendarMain.value.getApi().unselect()
 }
 function closeAddTask(isActive) {
