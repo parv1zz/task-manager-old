@@ -2,8 +2,8 @@
   <v-app>
     <div style="height: 100vh;" class="overflow-hidden d-flex flex-column">
       <!-- lang select -->
-      <div class="mb-6 bg-grey-lighten-3">
-        <Container class="pa-2">
+      <div class="mb-4 bg-grey-lighten-3">
+        <Container>
           <v-select
             width="100"
             :items="locales"
@@ -33,7 +33,7 @@
 
       <Container class="flex-grow-1">
         <!-- calendar -->
-        <div class="h-100 d-flex flex-column pa-2">
+        <div class="h-100 d-flex flex-column">
           <!-- header toolbar -->
           <div class="d-flex justify-space-between mb-6">
             <div>
@@ -104,6 +104,7 @@
           <FullCalendar
             ref="calendarMain"
             :options="calendarMainOptions"
+            class="w-100"
           >
           </FullCalendar>
         </div>
@@ -408,7 +409,11 @@ const calendarMainOptions = ref({
   eventClick: showTaskInfo,
   // select
   selectable: true,
-  select: selectClick
+  select: selectClick,
+  eventDrop: function(info) {
+    if(!info.event.allDay)
+    calendarMain.value.getApi().getEventById(info.event.id).setEnd(new Date(new Date(info.event.start).getTime()+ 60*60*1000))
+  }
 })
 function updateTasks(events) {
   calendarTasks.value = events
@@ -440,6 +445,10 @@ const compareStartEnd = () => {
   }
 }
 const compareStartTimeEndTime = () => {
+  if(formTask.value.startTime && !formTask.value.endTime || !formTask.value.startTime && formTask.value.endTime) {
+    return 'required'
+  }
+
   if((formTask.value.startTime && formTask.value.endTime && formTask.value.start && formTask.value.end) && (new Date(formTask.value.start).getTime() == new Date(formTask.value.end).getTime())) {
     return (formTask.value.startTime <= formTask.value.endTime && (formTask.value.startTime != '' || formTask.value.endTime != '')) || 'incorrect'
   } else {
@@ -517,7 +526,6 @@ function addTaskClick() {
   taskFormOpen.value = true
   formTask.value.color = colors.value[2].value
   formTask.value.start = new Date().getFullYear() + '-' + (new Date().getMonth()+1 < 10 ? `0${new Date().getMonth()+1}` : new Date().getMonth()+1) + '-' + (new Date().getDate() < 10 ? `0${new Date().getDate()}` : new Date().getDate())
-  formTask.value.startTime = '00:00'
 }
 async function addTask(isActive) {
   const { valid } = await taskForm.value.validate()
@@ -538,9 +546,6 @@ async function addTask(isActive) {
       } else {
         taskEnd = formTask.value.end + ' 00:00'
       }
-    }
-    if(formTask.value.startTime && !formTask.value.endTime) {
-      taskEnd = formTask.value.end + ' ' + String(Number.parseInt(formTask.value.startTime.split(':')[0]) + 1) + ':' + formTask.value.startTime.split(':')[1]
     }
 
     let newTask =  {
