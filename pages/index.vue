@@ -1,19 +1,82 @@
 <template>
   <v-app>
+    <div class="mb-6 pa-2 bg-grey-lighten-3">
+      <v-select
+        width="90"
+        :items="locales"
+        v-model="appLocale"
+        density="compact"
+        variant="outlined"
+        hide-details
+      ></v-select>
+    </div>
     <div class="container overflow-hidden">
       <div>
+        <!-- header toolbar -->
+        <div class="d-flex justify-space-between mb-6">
+          <div>
+            <v-btn
+              icon="mdi-chevron-left"
+              size="small"
+              variant="outlined"
+              color="#2c3e50"
+              @click="calendarMain.getApi().prev()"
+            ></v-btn>
+            <v-btn
+              icon="mdi-chevron-right"
+              size="small"
+              variant="outlined"
+              class="ml-1"
+              color="#2c3e50"
+              @click="calendarMain.getApi().next()"
+              ></v-btn>
+            <v-btn
+              height="40"
+              color="#2c3e50"
+              elevation="0"
+              class="ml-3"
+              slim
+              @click="calendarMain.getApi().today()"
+            >{{ $t('today') }}</v-btn>
+          </div>
+          <div id="today-title"></div>
+          <div class="d-flex ga-3">
+            <v-select
+              :items="calendarViewModes"
+              v-model="calendarViewMode"
+              density="compact"
+              variant="outlined"
+              hide-details
+            >
+              <template v-slot:item="{ props, item }">
+                <v-list-item v-bind="props" :title="$t(item.title)"></v-list-item>
+              </template>
+              <template v-slot:selection="{ item, index }">
+                {{ $t(item.title) }}
+              </template>
+            </v-select>
+            <v-btn
+              height="40"
+              color="#2c3e50"
+              elevation="0"
+              slim
+              prepend-icon="mdi-plus"
+              @click="addTaskClick"
+            >{{ $t('addTask') }}</v-btn>
+          </div>
+        </div>
         <FullCalendar
           ref="calendarMain"
           :options="calendarMainOptions"
-          >
+        >
         </FullCalendar>
       </div>
     </div>
 
     <!-- task form dialog -->
-    <!-- <v-dialog v-model="taskFormOpen" activator=".fc-addTask-button" @afterLeave="taskForm.reset()" max-width="600">
+    <v-dialog v-model="taskFormOpen" @afterLeave="taskForm.reset()" max-width="600">
       <template v-slot:default="{ isActive }">
-        <v-card :title="!taskFormEdit ? 'Add task' : 'Edit task'">
+        <v-card :title="!taskFormEditing ? $t('addTask') : $t('editTask')">
           <v-card-text class="pb-0">
             <v-form ref="taskForm">
               <v-container class="pa-0">
@@ -22,7 +85,7 @@
                     <v-text-field
                       v-model="formTask.title"
                       :rules="rules"
-                      label="Title"
+                      :label="$t('title')"
                       required
                       persistent-placeholder
                     />
@@ -31,12 +94,18 @@
                     <v-select
                       v-model="formTask.color"
                       :items="colors"
-                      label="Color"
+                      :label="$t('color')"
                       persistent-placeholder
                     >
+                      <template v-slot:item="{ props, item }">
+                        <v-list-item v-bind="props" :title="$t(item.title)"></v-list-item>
+                      </template>
+                      <template v-slot:selection="{ item, index }">
+                        {{ $te(item.title) ? $t(item.title) : item.title }}
+                      </template>
                       <template v-slot:append-item>
                         <v-divider></v-divider>
-                        <v-list-item ref="pickColorBtn" @click="">pick color</v-list-item>
+                        <v-list-item ref="pickColorBtn" @click="" :title="$t('pickColor')"></v-list-item>
                       </template>
                     </v-select>
                   </v-col>
@@ -48,7 +117,7 @@
                       v-model="formTask.start"
                       required
                       :rules="dateRules"
-                      label="Start"
+                      :label="$t('start')"
                       persistent-placeholder
                       type="date"
                     />
@@ -56,7 +125,7 @@
                       max-width="100"
                       v-model="formTask.startTime"
                       :rules="timeRules"
-                      label="Time"
+                      :label="$t('time')"
                       persistent-placeholder
                       type="time"
                     />
@@ -67,7 +136,7 @@
                       v-model="formTask.end"
                       required
                       :rules="dateRules"
-                      label="End"
+                      :label="$t('end')"
                       persistent-placeholder
                       type="date"
                     />
@@ -75,7 +144,7 @@
                       max-width="100"
                       v-model="formTask.endTime"
                       :rules="timeRules"
-                      label="Time"
+                      :label="$t('time')"
                       persistent-placeholder
                       type="time"
                     />
@@ -87,136 +156,40 @@
                       v-model="formTask.start"
                       required
                       :rules="rules"
-                      label="Date"
+                      :label="$t('date')"
                       persistent-placeholder
                       type="date"
                     />
                   </v-col>
                 </v-row>
               </v-container>
-              <v-checkbox v-model="formTask.allDay" label="All day" hide-details></v-checkbox>
+              <v-checkbox v-model="formTask.allDay" :label="$t('allDay')" hide-details></v-checkbox>
             </v-form>
           </v-card-text>
           <v-card-actions>
             <v-btn
-              v-if="!taskFormEdit"
-              text="Add"
+              v-if="!taskFormEditing"
+              :text="$t('add')"
               @click="addTask(isActive)"
+              color="green"
             ></v-btn>
             <v-btn
               v-else
-              text="Edit"
+              :text="$t('edit')"
               @click="editTask(isActive)"
+              color="green"
             ></v-btn>
             <v-btn
-              v-if="!taskFormEdit"
-              text="Cancel"
+              v-if="!taskFormEditing"
+              :text="$t('cancel')"
               @click="closeAddTask(isActive)"
+              color="red"
             ></v-btn>
             <v-btn
               v-else
-              text="Cancel"
+              :text="$t('cancel')"
               @click="closeEditTask(isActive)"
-            ></v-btn>
-          </v-card-actions>
-        </v-card>
-      </template>
-    </v-dialog> -->
-    <!-- add task dialog -->
-    <v-dialog activator=".fc-addTask-button" @afterLeave="formAdd.reset()" max-width="600">
-      <template v-slot:default="{ isActive }">
-        <v-card title="Add task">
-          <v-card-text class="pb-0">
-            <v-form ref="formAdd">
-              <v-container class="pa-0">
-                <v-row>
-                  <v-col>
-                    <v-text-field
-                      v-model="formTask.title"
-                      :rules="rules"
-                      label="Title"
-                      required
-                      persistent-placeholder
-                    />
-                  </v-col>
-                  <v-col>
-                    <v-select
-                      v-model="formTask.color"
-                      :items="colors"
-                      label="Color"
-                      persistent-placeholder
-                    >
-                      <template v-slot:append-item>
-                        <v-divider></v-divider>
-                        <v-list-item ref="pickColorBtn" @click="">pick color</v-list-item>
-                      </template>
-                    </v-select>
-                  </v-col>
-                </v-row>
-                <v-row v-if="!formTask.allDay">
-                  <v-col class="pt-0 d-flex justify-space-between ga-2">
-                    <v-text-field
-                      max-width="160"
-                      v-model="formTask.start"
-                      required
-                      :rules="dateRules"
-                      label="Start"
-                      persistent-placeholder
-                      type="date"
-                    />
-                    <v-text-field
-                      max-width="100"
-                      v-model="formTask.startTime"
-                      :rules="timeRules"
-                      label="Time"
-                      persistent-placeholder
-                      type="time"
-                    />
-                  </v-col>
-                  <v-col class="pt-0 d-flex justify-space-between ga-2">
-                    <v-text-field
-                      max-width="160"
-                      v-model="formTask.end"
-                      required
-                      :rules="dateRules"
-                      label="End"
-                      persistent-placeholder
-                      type="date"
-                    />
-                    <v-text-field
-                      max-width="100"
-                      v-model="formTask.endTime"
-                      :rules="timeRules"
-                      label="Time"
-                      persistent-placeholder
-                      type="time"
-                    />
-                  </v-col>
-                </v-row>
-                <v-row v-if="formTask.allDay">
-                  <v-col class="pt-0">
-                    <v-text-field
-                      v-model="formTask.start"
-                      required
-                      :rules="rules"
-                      label="Date"
-                      persistent-placeholder
-                      type="date"
-                    />
-                  </v-col>
-                </v-row>
-              </v-container>
-              <v-checkbox v-model="formTask.allDay" label="All day" hide-details></v-checkbox>
-            </v-form>
-          </v-card-text>
-          <v-card-actions>
-            <v-btn
-              text="Add"
-              @click="addTask(isActive)"
-            ></v-btn>
-            <v-btn
-              text="Cancel"
-              @click="closeAddTask(isActive)"
+              color="red"
             ></v-btn>
           </v-card-actions>
         </v-card>
@@ -226,138 +199,36 @@
     <v-dialog v-model="taskInfoOpen" @afterLeave="currentTask = {}" v-if="!currentTask.hasOwnProperty('title')" max-width="400">
       <template v-slot:default="{ isActive }">
         <v-card>
-          <v-card-title>Task info</v-card-title>
-          <v-card-subtitle v-if="currentTask.allDay">All day</v-card-subtitle>
+          <v-card-title>{{ $t('taskInfo') }}</v-card-title>
+          <v-card-subtitle v-if="currentTask.allDay">{{ $t('allDay') }}</v-card-subtitle>
           <v-card-text>
             <div class="d-flex align-center ga-2">
               <v-badge class="mx-n1" inline :color="currentTask.backgroundColor"></v-badge>
               <h3 style="font-size: 20px;">{{ currentTask.title }}</h3>
             </div>
-            <div v-if="currentTask.allDay" class="mt-2 text-body-2">{{ `${currentTask.start.getDate()} ${new Intl.DateTimeFormat('en', { month: 'short' }).format(currentTask.start)} ${currentTask.start.getFullYear()}` }}</div>
+            <div v-if="currentTask.allDay" class="mt-2 text-body-2">{{ `${currentTask.start.getDate()} ${new Intl.DateTimeFormat(locale, { month: 'short' }).format(currentTask.start)} ${currentTask.start.getFullYear()}` }}</div>
             <div v-if="(!currentTask.allDay && checkDays(currentTask.start, currentTask.end))" class="mt-2 text-body-2">
-              <span>{{ `${currentTask.start.getDate()} ${new Intl.DateTimeFormat('en', { month: 'short' }).format(currentTask.start)} ${currentTask.start.getFullYear()} • ` }}</span>
+              <span>{{ `${currentTask.start.getDate()} ${new Intl.DateTimeFormat(locale, { month: 'short' }).format(currentTask.start)} ${currentTask.start.getFullYear()} • ` }}</span>
               <span class="font-weight-bold">{{ `${currentTask.start.getHours()}:${currentTask.start.getMinutes() < 10 ? '0'+currentTask.start.getMinutes() : currentTask.start.getMinutes()}` }}</span>
               <span> - </span>
               <span class="font-weight-bold">{{ `${currentTask.end.getHours()}:${currentTask.end.getMinutes() < 10 ? '0'+currentTask.end.getMinutes() : currentTask.end.getMinutes()}` }}</span>
             </div>
             <div v-if="(!currentTask.allDay && !checkDays(currentTask.start, currentTask.end))" class="mt-2 text-body-2">
-              <span>{{ `${currentTask.start.getDate()} ${new Intl.DateTimeFormat('en', { month: 'short' }).format(currentTask.start)} ${currentTask.start.getFullYear()}` }}</span>
+              <span>{{ `${currentTask.start.getDate()} ${new Intl.DateTimeFormat(locale, { month: 'short' }).format(currentTask.start)} ${currentTask.start.getFullYear()}` }}</span>
               <span class="font-weight-bold">{{ ` ${currentTask.start.getHours()}:${currentTask.start.getMinutes() < 10 ? '0'+currentTask.start.getMinutes() : currentTask.start.getMinutes()}` }}</span>
-              <span>{{ ` - ${currentTask.end.getDate()} ${new Intl.DateTimeFormat('en', { month: 'short' }).format(currentTask.end)} ${currentTask.end.getFullYear()}` }}</span>
+              <span>{{ ` - ${currentTask.end.getDate()} ${new Intl.DateTimeFormat(locale, { month: 'short' }).format(currentTask.end)} ${currentTask.end.getFullYear()}` }}</span>
               <span class="font-weight-bold">{{ ` ${currentTask.end.getHours()}:${currentTask.end.getMinutes() < 10 ? '0'+currentTask.end.getMinutes() : currentTask.end.getMinutes()}` }}</span>
             </div>
           </v-card-text>
           <v-card-actions>
             <v-btn icon="mdi-pencil" @click="editTaskClick"></v-btn>
-            <v-btn icon="mdi-delete" @click="deleteTask(isActive)"></v-btn>
-          </v-card-actions>
-        </v-card>
-      </template>
-    </v-dialog>
-    <!-- edit task dialog -->
-    <v-dialog v-model="taskEditOpen" @afterLeave="formEdit.reset()" max-width="600">
-      <template v-slot:default="{ isActive }">
-        <v-card title="Edit task">
-          <v-card-text class="pb-0">
-            <v-form ref="formEdit">
-              <v-container class="pa-0">
-                <v-row>
-                  <v-col>
-                    <v-text-field
-                      v-model="formTask.title"
-                      :rules="rules"
-                      label="Title"
-                      required
-                      persistent-placeholder
-                    />
-                  </v-col>
-                  <v-col>
-                    <v-select
-                      v-model="formTask.color"
-                      :items="colors"
-                      :rules="rules"
-                      label="Color"
-                      required
-                      persistent-placeholder
-                    >
-                      <template v-slot:append-item>
-                        <v-divider></v-divider>
-                        <v-list-item ref="pickColorBtn" @click="">pick color</v-list-item>
-                      </template>
-                    </v-select>
-                  </v-col>
-                </v-row>
-                <v-row v-if="!formTask.allDay">
-                  <v-col class="pt-0 d-flex justify-space-between ga-2">
-                    <v-text-field
-                      max-width="160"
-                      v-model="formTask.start"
-                      required
-                      :rules="dateRules"
-                      label="Start"
-                      persistent-placeholder
-                      type="date"
-                    />
-                    <v-text-field
-                      max-width="100"
-                      v-model="formTask.startTime"
-                      :rules="timeRules"
-                      label="Time"
-                      persistent-placeholder
-                      type="time"
-                    />
-                  </v-col>
-                  <v-col class="pt-0 d-flex justify-space-between ga-2">
-                    <v-text-field
-                      max-width="160"
-                      v-model="formTask.end"
-                      required
-                      :rules="dateRules"
-                      label="End"
-                      persistent-placeholder
-                      type="date"
-                    />
-                    <v-text-field
-                      max-width="100"
-                      v-model="formTask.endTime"
-                      :rules="timeRules"
-                      label="Time"
-                      persistent-placeholder
-                      type="time"
-                    />
-                  </v-col>
-                </v-row>
-                <v-row v-if="formTask.allDay">
-                  <v-col class="pt-0">
-                    <v-text-field
-                      v-model="formTask.start"
-                      required
-                      :rules="rules"
-                      label="Date"
-                      persistent-placeholder
-                      type="date"
-                    />
-                  </v-col>
-                </v-row>
-              </v-container>
-              <v-checkbox v-model="formTask.allDay" label="All day" hide-details></v-checkbox>
-            </v-form>
-          </v-card-text>
-          <v-card-actions>
-            <v-btn
-              text="Edit"
-              @click="editTask(isActive)"
-            ></v-btn>
-            <v-btn
-              text="Cancel"
-              @click="closeEditTask(isActive)"
-            ></v-btn>
+            <v-btn icon="mdi-delete" @click="deleteTask(isActive)" color="red"></v-btn>
           </v-card-actions>
         </v-card>
       </template>
     </v-dialog>
     <!-- color pick dialog -->
-    <v-dialog :activator="pickColorBtn" @afterLeave="pickerColor='';" max-width="332">
+    <v-dialog :activator="pickColorBtn" @afterLeave="pickerColor=''" max-width="332">
       <template v-slot:default="{ isActive }">
         <v-card>
           <v-card-text class="pa-4">
@@ -365,11 +236,11 @@
           </v-card-text>
           <v-card-actions>            
             <v-btn
-              text="Pick"
+              :text="$t('pick')"
               @click="pickColor(isActive)"
             ></v-btn>
             <v-btn
-              text="Close"
+              :text="$t('close')"
               @click="isActive.value = false"
             ></v-btn>
           </v-card-actions>
@@ -380,20 +251,37 @@
 </template>
 
 <script setup>
+// locale
 const { locale, setLocale } = useI18n()
+import { t } from '@/scripts/locale'
 
+// head
 useHead({
   title: 'Task manager',
 })
 
+// calendar imports
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import listPlugin from '@fullcalendar/list'
+import allLocales from '@fullcalendar/core/locales-all'
 
+// calendar
 const calendarMain = ref()
+const calendarTasks = ref([])
 
+// locales
+const locales = ref(['en', 'ru'])
+const appLocale = ref('')
+watch(appLocale, async (newValue, oldValue) => {
+  calendarMain.value.getApi().setOption('locale', newValue)
+  setLocale(newValue)
+  localStorage.setItem('locale', appLocale.value)
+})
+
+// task id
 let taskId;
 function createTaskId() {
   taskId++
@@ -401,11 +289,18 @@ function createTaskId() {
   return String(taskId)
 }
 
-const calendarTasks = ref([])
-
+// mounted
 onMounted(() => {
+  // get locale
+  appLocale.value = localStorage.getItem('locale')
+  // set locale
+  setLocale(appLocale.value)
+  calendarMain.value.getApi().setOption('locale', appLocale.value)
+
+  // get task id
   taskId = JSON.parse(localStorage.getItem('id'))
 
+  // get tasks
   let tasks = JSON.parse(localStorage.getItem('calendarTasks'))
 
   if(tasks) {
@@ -413,32 +308,33 @@ onMounted(() => {
       calendarMain.value.getApi().addEvent(tasks[i])
     }
   }
+
+  // today title
+  document.getElementById('today-title').appendChild(document.querySelector('.fc-toolbar-title'))
+  document.querySelector('.fc-header-toolbar').style.display = 'none'
 })
 
 watch(calendarTasks, async (newCalendarTasks, oldCalendarTasks) => {
   localStorage.setItem('calendarTasks', JSON.stringify(newCalendarTasks))
 })
 
+// calendar settings
 const calendarMainOptions = ref({
   plugins: [ dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin ],
   initialView: 'dayGridMonth',
   events: calendarTasks.value,
-  fixedWeekCount: false,
-  snapDuration: '00:15:00',
   firstDay: 1,
-
+  fixedWeekCount: false,
+  weekNumbers: true,
+  snapDuration: '00:15:00',
   height: '100vh',
+  locales: allLocales,
+  locale: appLocale.value,
 
-  customButtons: {
-    addTask: {
-      text: '+ Add task',
-      click: function() {},
-    },
-  },
   headerToolbar: {
     left: 'prev,next today',
     center: 'title',
-    right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth addTask',
+    right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth',
   },
 
   editable: true,
@@ -449,19 +345,24 @@ const calendarMainOptions = ref({
     let api = calendarMain.value.getApi()
     api.changeView('timeGridDay')
     api.gotoDate(date)
+
+    calendarViewMode.value = 'timeGridDay'
   },
-  eventClick: showTaskInfo
+  navLinkWeekClick: function() {
+    calendarViewMode.value = 'timeGridWeek'
+  },
+  eventClick: showTaskInfo,
+  selectable: true,
+  dateClick: dateClick,
 })
 function updateTasks(events) {
   calendarTasks.value = events
 }
 
-// forms
+// form
 const taskForm = ref()
 const taskFormOpen = ref(false)
-const taskFormEdit = ref(false)
-const formAdd = ref()
-const formEdit = ref()
+const taskFormEditing = ref(false)
 
 // form values
 const formTask = ref({
@@ -495,57 +396,58 @@ const dateRules = ref([checkValue , compareStartEnd])
 const timeRules = ref([compareStartTimeEndTime])
 // watchers for validation
 watch(() => formTask.value.start, async (newValidationCounter, oldValidationCounter) => {
-  if(formAdd.value) {
-    formAdd.value.items[2].validate()
-    formAdd.value.items[4].validate()
-    formAdd.value.items[3].validate()
-    formAdd.value.items[5].validate()
-  }
-  if(formEdit.value) {
-    formEdit.value.items[2].validate()
-    formEdit.value.items[4].validate()
-    formEdit.value.items[3].validate()
-    formEdit.value.items[5].validate()
+  if(taskForm.value && !formTask.value.allDay && taskFormOpen.value) {
+    taskForm.value.items[2].validate()
+    taskForm.value.items[4].validate()
+    taskForm.value.items[3].validate()
+    taskForm.value.items[5].validate()
   }
 })
 watch(() => formTask.value.end, async (newValidationCounter, oldValidationCounter) => {
-  if(formAdd.value) {
-    formAdd.value.items[2].validate()
-    formAdd.value.items[4].validate()
-    formAdd.value.items[3].validate()
-    formAdd.value.items[5].validate()
-  }
-  if(formEdit.value) {
-    formEdit.value.items[2].validate()
-    formEdit.value.items[4].validate()
-    formEdit.value.items[3].validate()
-    formEdit.value.items[5].validate()
+  if(taskForm.value && !formTask.value.allDay && taskFormOpen.value) {
+    taskForm.value.items[2].validate()
+    taskForm.value.items[4].validate()
+    taskForm.value.items[3].validate()
+    taskForm.value.items[5].validate()
   }
 })
 watch(() => formTask.value.startTime, async (newValidationCounter, oldValidationCounter) => {
-  if(formAdd.value) {
-    formAdd.value.items[3].validate()
-    formAdd.value.items[5].validate()
-  }
-  if(formEdit.value) {
-    formEdit.value.items[3].validate()
-    formEdit.value.items[5].validate()
+  if(taskForm.value && !formTask.value.allDay && taskFormOpen.value) {
+    taskForm.value.items[3].validate()
+    taskForm.value.items[5].validate()
   }
 })
 watch(() => formTask.value.endTime, async (newValidationCounter, oldValidationCounter) => {
-  if(formAdd.value) {
-    formAdd.value.items[3].validate()
-    formAdd.value.items[5].validate()
-  }
-  if(formEdit.value) {
-    formEdit.value.items[3].validate()
-    formEdit.value.items[5].validate()
+  if(taskForm.value && !formTask.value.allDay && taskFormOpen.value) {
+    taskForm.value.items[3].validate()
+    taskForm.value.items[5].validate()
   }
 })
 
 // color picker
 const pickColorBtn = ref()
-const colors = ref(['red', 'green', 'blue', 'orange', 'purple',])
+const colors = ref([
+{
+    title: 'red',
+    value: '#F44336',
+  },
+  {
+    title: 'green',
+    value: '#4CAF50',
+  },
+  {
+    title: 'blue',
+    value: '#2196F3',
+  },
+  {
+    title: 'orange',
+    value: '#FF9800',
+  },
+  {
+    title: 'purple',
+    value: '#9C27B0',
+  },
+])
 const pickerColor = ref('')
 function pickColor(isActive) {
   formTask.value.color = pickerColor.value
@@ -553,10 +455,14 @@ function pickColor(isActive) {
 }
 
 // add task
-const taskAddOpen = ref(false)
-
+function addTaskClick() {
+  taskFormEditing.value = false
+  taskFormOpen.value = true
+  formTask.value.color = '#2196F3'
+  formTask.value.start = new Date().getFullYear() + '-' + (new Date().getMonth()+1 < 10 ? `0${new Date().getMonth()+1}` : new Date().getMonth()+1) + '-' + (new Date().getDate() < 10 ? `0${new Date().getDate()}` : new Date().getDate())
+}
 async function addTask(isActive) {
-  const { valid } = await formAdd.value.validate()
+  const { valid } = await taskForm.value.validate()
 
   if(valid) {
     let taskStart = ''
@@ -584,7 +490,7 @@ async function addTask(isActive) {
       title: formTask.value.title,
       start: new Date(taskStart).getTime(),
       end: new Date(taskEnd).getTime(),
-      color: formTask.value.color ? formTask.value.color : 'blue',
+      color: formTask.value.color ? formTask.value.color : '#2196F3',
       allDay: formTask.value.allDay,
     }
 
@@ -592,8 +498,15 @@ async function addTask(isActive) {
     closeAddTask(isActive)
   }
 }
+function dateClick(dateClickInfo) {
+  taskFormEditing.value = false
+  taskFormOpen.value = true
+  formTask.value.color = '#2196F3'
+  formTask.value.start = dateClickInfo.date.getFullYear() + '-' + (dateClickInfo.date.getMonth()+1 < 10 ? `0${dateClickInfo.date.getMonth()+1}` : dateClickInfo.date.getMonth()+1) + '-' + (dateClickInfo.date.getDate() < 10 ? `0${dateClickInfo.date.getDate()}` : dateClickInfo.date.getDate())
+  calendarMain.value.getApi().unselect()
+}
 function closeAddTask(isActive) {
-  formAdd.value.reset()
+  taskForm.value.reset()
   isActive.value = false
 }
 
@@ -608,14 +521,13 @@ function showTaskInfo(eventClickInfo) {
 function checkDays(day1, day2) {
   return new Date(`${new Date(day1).getFullYear()} ${new Date(day1).getMonth()+1} ${new Date(day1).getDate()}`).getTime() == new Date(`${new Date(day2).getFullYear()} ${new Date(day2).getMonth()+1} ${new Date(day2).getDate()}`).getTime()
 }
-function checkTime() {
-  
-}
 function deleteTask(isActive) {
   calendarMain.value.getApi().getEventById(currentTask.value.id).remove()
   isActive.value = false
 }
 function editTaskClick() {
+  taskFormEditing.value = true
+
   formTask.value.title = currentTask.value.title
   formTask.value.color = currentTask.value.backgroundColor
   formTask.value.allDay = currentTask.value.allDay
@@ -629,14 +541,12 @@ function editTaskClick() {
     formTask.value.end = currentTask.value.end.getFullYear() + '-' + (currentTask.value.end.getMonth()+1 < 10 ? `0${currentTask.value.end.getMonth()+1}` : currentTask.value.end.getMonth()+1) + '-' + (currentTask.value.end.getDate() < 10 ? `0${currentTask.value.end.getDate()}` : currentTask.value.end.getDate())
     formTask.value.endTime = (currentTask.value.end.getHours() < 10 ? `0${currentTask.value.end.getHours()}` : currentTask.value.end.getHours()) + ':' + (currentTask.value.end.getMinutes() < 10 ? `0${currentTask.value.end.getMinutes()}` : currentTask.value.end.getMinutes())
   }
-  taskEditOpen.value = true
+  taskFormOpen.value = true
 }
 
 // edit task
-const taskEditOpen = ref(false)
-
 async function editTask(isActive) {
-  const { valid } = await formEdit.value.validate()
+  const { valid } = await taskForm.value.validate()
 
   if(valid) {
     let api = calendarMain.value.getApi()
@@ -675,7 +585,32 @@ async function editTask(isActive) {
   }
 }
 function closeEditTask(isActive) {
-  formEdit.value.reset()
+  taskForm.value.reset()
   isActive.value = false
 }
+
+// view mode
+const calendarViewModes = ref([
+  {
+    title: 'month',
+    value: 'dayGridMonth'
+  },
+  {
+    title: 'week',
+    value: 'timeGridWeek'
+  },
+  {
+    title: 'day',
+    value: 'timeGridDay'
+  },
+  {
+    title: 'list',
+    value: 'listMonth'
+  },
+])
+
+const calendarViewMode = ref('dayGridMonth')
+watch(calendarViewMode, async (newValue, oldValue) => {
+  calendarMain.value.getApi().changeView(newValue)
+})
 </script>
