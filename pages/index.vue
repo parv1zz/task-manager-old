@@ -168,14 +168,14 @@
                       persistent-placeholder
                     >
                       <v-icon class="order-2" size="x-small" color="black">mdi-calendar-blank</v-icon>
-                      <v-menu activator="parent" close-delay="0">
+                      <v-menu location="end" v-model="pickerOpen[0]" activator="parent" close-delay="0" :close-on-content-click="false">
                         <v-locale-provider :locale="locale">
                           <v-date-picker
                             v-model="pickerStart"
-                            height="304"
                             hide-header
                             header=""
                             elevation="5"
+                            @update:model-value="formValues.start = pickerStart.toLocaleDateString(locale, {year: 'numeric', month: '2-digit', day: '2-digit'}); pickerOpen[0] = false"
                           ></v-date-picker>
                         </v-locale-provider>
                       </v-menu>
@@ -200,14 +200,14 @@
                       persistent-placeholder
                     >
                       <v-icon class="order-2" size="x-small" color="black">mdi-calendar-blank</v-icon>
-                      <v-menu activator="parent" close-delay="0">
+                      <v-menu location="end" v-model="pickerOpen[1]" activator="parent" close-delay="0" :close-on-content-click="false">
                         <v-locale-provider :locale="locale">
                           <v-date-picker
                             v-model="pickerEnd"
-                            height="304"
                             hide-header
                             header=""
                             elevation="5"
+                            @update:model-value="formValues.end = pickerEnd.toLocaleDateString(locale, {year: 'numeric', month: '2-digit', day: '2-digit'}); pickerOpen[1] = false"
                           ></v-date-picker>
                         </v-locale-provider>
                       </v-menu>
@@ -494,12 +494,7 @@ const formValues = ref({
 // date pickers
 const pickerStart = ref(null)
 const pickerEnd = ref(null)
-watch(pickerStart, (newV, oldV) => {
-  formValues.value.start = newV.toLocaleDateString(locale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
-})
-watch(pickerEnd, (newV, oldV) => {
-  formValues.value.end = newV.toLocaleDateString(locale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
-})
+const pickerOpen = ref([false, false])
 
 // formatted task
 const task = computed({
