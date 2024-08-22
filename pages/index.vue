@@ -121,7 +121,8 @@
                 <v-row>
                   <v-col>
                     <v-text-field
-                      v-model="formTask.title"
+                      autofocus
+                      v-model="formValues.title"
                       :rules="rules"
                       :label="$t('title')"
                       required
@@ -130,7 +131,7 @@
                   </v-col>
                   <v-col>
                     <v-select
-                      v-model="formTask.color"
+                      v-model="formValues.color"
                       :items="colors"
                       :label="$t('color')"
                       persistent-placeholder
@@ -155,20 +156,33 @@
                     </v-select>
                   </v-col>
                 </v-row>
-                <v-row v-if="!formTask.allDay">
+                <v-row v-if="!formValues.allDay">
                   <v-col class="pt-0 d-flex justify-space-between ga-2">
                     <v-text-field
-                      max-width="160"
-                      v-model="formTask.start"
+                      width="156"
+                      v-model="formValues.start"
                       required
                       :rules="dateRules"
                       :label="$t('start')"
+                      :placeholder="getDatePattern(locale)"
                       persistent-placeholder
-                      type="date"
-                    />
+                    >
+                      <v-icon class="order-2" size="x-small" color="black">mdi-calendar-blank</v-icon>
+                      <v-menu activator="parent" close-delay="0">
+                        <v-locale-provider :locale="locale">
+                          <v-date-picker
+                            v-model="pickerStart"
+                            height="304"
+                            hide-header
+                            header=""
+                            elevation="5"
+                          ></v-date-picker>
+                        </v-locale-provider>
+                      </v-menu>
+                    </v-text-field>
                     <v-text-field
                       max-width="100"
-                      v-model="formTask.startTime"
+                      v-model="formValues.startTime"
                       :rules="timeRules"
                       :label="$t('time')"
                       persistent-placeholder
@@ -177,17 +191,30 @@
                   </v-col>
                   <v-col class="pt-0 d-flex justify-space-between ga-2">
                     <v-text-field
-                      max-width="160"
-                      v-model="formTask.end"
+                      width="156"
+                      v-model="formValues.end"
                       required
                       :rules="dateRules"
                       :label="$t('end')"
+                      :placeholder="getDatePattern(locale)"
                       persistent-placeholder
-                      type="date"
-                    />
+                    >
+                      <v-icon class="order-2" size="x-small" color="black">mdi-calendar-blank</v-icon>
+                      <v-menu activator="parent" close-delay="0">
+                        <v-locale-provider :locale="locale">
+                          <v-date-picker
+                            v-model="pickerEnd"
+                            height="304"
+                            hide-header
+                            header=""
+                            elevation="5"
+                          ></v-date-picker>
+                        </v-locale-provider>
+                      </v-menu>
+                    </v-text-field>
                     <v-text-field
                       max-width="100"
-                      v-model="formTask.endTime"
+                      v-model="formValues.endTime"
                       :rules="timeRules"
                       :label="$t('time')"
                       persistent-placeholder
@@ -195,20 +222,34 @@
                     />
                   </v-col>
                 </v-row>
-                <v-row v-if="formTask.allDay">
+                <v-row v-if="formValues.allDay">
                   <v-col class="pt-0">
                     <v-text-field
-                      v-model="formTask.start"
+                      width="100%"
+                      v-model="formValues.start"
                       required
-                      :rules="rules"
-                      :label="$t('date')"
+                      :rules="allDayDateRules"
+                      :label="$t('start')"
+                      :placeholder="getDatePattern(locale)"
                       persistent-placeholder
-                      type="date"
-                    />
+                    >
+                      <v-icon class="order-2" size="x-small" color="black">mdi-calendar-blank</v-icon>
+                      <v-menu activator="parent" close-delay="0">
+                        <v-locale-provider :locale="locale">
+                          <v-date-picker
+                            v-model="pickerStart"
+                            height="304"
+                            hide-header
+                            header=""
+                            elevation="5"
+                          ></v-date-picker>
+                        </v-locale-provider>
+                      </v-menu>
+                    </v-text-field>
                   </v-col>
                 </v-row>
               </v-container>
-              <v-checkbox v-model="formTask.allDay" :label="$t('allDay')" hide-details></v-checkbox>
+              <v-checkbox v-model="formValues.allDay" :label="$t('allDay')" hide-details></v-checkbox>
             </v-form>
           </v-card-text>
           <v-card-actions>
@@ -251,18 +292,18 @@
               <v-badge class="mx-n1" inline :color="currentTask.backgroundColor"></v-badge>
               <h3 style="font-size: 20px;">{{ currentTask.title }}</h3>
             </div>
-            <div v-if="currentTask.allDay" class="mt-2 text-body-2">{{ `${currentTask.start.getDate()} ${new Intl.DateTimeFormat(locale, { month: 'short' }).format(currentTask.start)} ${currentTask.start.getFullYear()}` }}</div>
+            <div v-if="currentTask.allDay" class="mt-2 text-body-2">{{ currentTask.start.toLocaleString(locale, {day: 'numeric', month: 'short', year: 'numeric'}) }}</div>
             <div v-if="(!currentTask.allDay && checkDays(currentTask.start, currentTask.end))" class="mt-2 text-body-2">
-              <span>{{ `${currentTask.start.getDate()} ${new Intl.DateTimeFormat(locale, { month: 'short' }).format(currentTask.start)} ${currentTask.start.getFullYear()} • ` }}</span>
-              <span class="font-weight-bold">{{ `${currentTask.start.getHours()}:${currentTask.start.getMinutes() < 10 ? '0'+currentTask.start.getMinutes() : currentTask.start.getMinutes()}` }}</span>
+              <span>{{ currentTask.start.toLocaleString(locale, {day: 'numeric', month: 'short', year: 'numeric'}) }} • </span>
+              <span class="font-weight-bold">{{ currentTask.start.toLocaleString(locale, { hour: 'numeric', minute: 'numeric', hour12: locale == 'en' ? true : false }) }}</span>
               <span> - </span>
-              <span class="font-weight-bold">{{ `${currentTask.end.getHours()}:${currentTask.end.getMinutes() < 10 ? '0'+currentTask.end.getMinutes() : currentTask.end.getMinutes()}` }}</span>
+              <span class="font-weight-bold">{{ currentTask.end.toLocaleString(locale, { hour: 'numeric', minute: 'numeric', hour12: locale == 'en' ? true : false }) }}</span>
             </div>
             <div v-if="(!currentTask.allDay && !checkDays(currentTask.start, currentTask.end))" class="mt-2 text-body-2">
-              <span>{{ `${currentTask.start.getDate()} ${new Intl.DateTimeFormat(locale, { month: 'short' }).format(currentTask.start)} ${currentTask.start.getFullYear()}` }}</span>
-              <span class="font-weight-bold">{{ ` ${currentTask.start.getHours()}:${currentTask.start.getMinutes() < 10 ? '0'+currentTask.start.getMinutes() : currentTask.start.getMinutes()}` }}</span>
-              <span>{{ ` - ${currentTask.end.getDate()} ${new Intl.DateTimeFormat(locale, { month: 'short' }).format(currentTask.end)} ${currentTask.end.getFullYear()}` }}</span>
-              <span class="font-weight-bold">{{ ` ${currentTask.end.getHours()}:${currentTask.end.getMinutes() < 10 ? '0'+currentTask.end.getMinutes() : currentTask.end.getMinutes()}` }}</span>
+              <span>{{ currentTask.start.toLocaleString(locale, {day: 'numeric', month: 'short', year: 'numeric'}) }}</span>
+              <span class="font-weight-bold">{{ ' ' + currentTask.start.toLocaleString(locale, { hour: 'numeric', minute: 'numeric', hour12: locale == 'en' ? true : false }) }}</span>
+              <span> - {{ currentTask.end.toLocaleString(locale, {day: 'numeric', month: 'short', year: 'numeric'}) }}</span>
+              <span class="font-weight-bold">{{ ' ' + currentTask.end.toLocaleString(locale, { hour: 'numeric', minute: 'numeric', hour12: locale == 'en' ? true : false }) }}</span>
             </div>
           </v-card-text>
           <v-card-actions>
@@ -296,11 +337,21 @@
 </template>
 
 <script setup>
-import container from '~/components/container.vue'
+// change date format
+function changeDateFormat(date) {
+  if(appLocale.value == 'ru') {
+    let date_split = date.split('.')
+    let new_date = `${date_split[1]}/${date_split[0]}/${date_split[2]}`
+    
+    return new_date
+  } else {
+    return date
+  }
+}
 
 // locale
 const { locale, setLocale } = useI18n()
-import { t } from '@/scripts/locale'
+import { t, getDatePattern } from '@/scripts/locale'
 
 // head
 useHead({
@@ -318,14 +369,16 @@ import allLocales from '@fullcalendar/core/locales-all'
 // calendar
 const calendarMain = ref()
 const calendarTasks = ref([])
+let calendarApi
 
 // locales
 const locales = ref(['en', 'ru'])
 const appLocale = ref('en') // default locale
 watch(appLocale, async (newValue, oldValue) => {
-  calendarMain.value.getApi().setOption('locale', newValue)
+  calendarApi.setOption('locale', newValue)
   setLocale(newValue)
   localStorage.setItem('locale', appLocale.value)
+  calendarApi.setOption('firstDay', newValue == 'en' ? 0 : 1)
 })
 
 // task id
@@ -338,13 +391,16 @@ function createTaskId() {
 
 // mounted
 onMounted(() => {
+  // get calendar api
+  calendarApi = calendarMain.value.getApi()
+  
   // get locale
   if(localStorage.getItem('locale')) {
     appLocale.value = localStorage.getItem('locale')
   }
   // set locale
   setLocale(appLocale.value)
-  calendarMain.value.getApi().setOption('locale', appLocale.value)
+  calendarApi.setOption('locale', appLocale.value)
 
   // get task id
   taskId = JSON.parse(localStorage.getItem('id'))
@@ -354,7 +410,7 @@ onMounted(() => {
 
   if(tasks) {
     for(let i = 0; i < tasks.length; i++) {
-      calendarMain.value.getApi().addEvent(tasks[i])
+      calendarApi.addEvent(tasks[i])
     }
   }
 
@@ -362,7 +418,7 @@ onMounted(() => {
   document.getElementById('today-title').appendChild(document.querySelector('.fc-toolbar-title'))
   document.querySelector('.fc-header-toolbar').style.display = 'none'
 
-  calendarMain.value.getApi().updateSize()
+  calendarApi.updateSize()
 })
 
 watch(calendarTasks, async (newCalendarTasks, oldCalendarTasks) => {
@@ -374,10 +430,13 @@ const calendarMainOptions = ref({
   plugins: [ dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin ],
   initialView: 'dayGridMonth',
   events: calendarTasks.value,
-  firstDay: 1,
+
+  dayMaxEvents: true,
+  firstDay: locale.value == 'en' ? 0 : 1,
   fixedWeekCount: false,
   weekNumbers: true,
   snapDuration: '00:15:00',
+  
   height: '100%',
   locales: allLocales,
   locale: appLocale.value,
@@ -391,14 +450,11 @@ const calendarMainOptions = ref({
   // editable
   editable: true,
   eventsSet: updateTasks,
-  // 
-  dayMaxEvents: true,
   // navs
   navLinks: true,
   navLinkDayClick: function(date, jsEvent) {
-    let api = calendarMain.value.getApi()
-    api.changeView('timeGridDay')
-    api.gotoDate(date)
+    calendarApi.changeView('timeGridDay')
+    calendarApi.gotoDate(date)
 
     calendarViewMode.value = 'timeGridDay'
   },
@@ -411,8 +467,9 @@ const calendarMainOptions = ref({
   selectable: true,
   select: selectClick,
   eventDrop: function(info) {
-    if(!info.event.allDay)
-    calendarMain.value.getApi().getEventById(info.event.id).setEnd(new Date(new Date(info.event.start).getTime()+ 60*60*1000))
+    if(!info.event.allDay && !info.event.end) {
+      calendarApi.getEventById(info.event.id).setEnd(new Date(new Date(info.event.start).getTime()+ 60*60*1000))
+    }
   }
 })
 function updateTasks(events) {
@@ -425,64 +482,93 @@ const taskFormOpen = ref(false)
 const taskFormEditing = ref(false)
 
 // form values
-const formTask = ref({
-  title: ref(''),
-  start: ref(''),
-  startTime: ref(''),
-  end: ref(''),
-  endTime: ref(''),
-  color: ref(''),
-  allDay: ref(false),
+const formValues = ref({
+  title: '',
+  start: '',
+  startTime: '',
+  end: '',
+  endTime: '',
+  color: '',
+  allDay: false,
+})
+// date pickers
+const pickerStart = ref(null)
+const pickerEnd = ref(null)
+watch(pickerStart, (newV, oldV) => {
+  formValues.value.start = newV.toLocaleDateString(locale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
+})
+watch(pickerEnd, (newV, oldV) => {
+  formValues.value.end = newV.toLocaleDateString(locale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
+})
+
+// formatted task
+const task = computed({
+  get() {
+    return {
+      title: formValues.value.title,
+      start: new Date(`${changeDateFormat(formValues.value.start)} ${formValues.value.startTime ? formValues.value.startTime : ''}`),
+      end: new Date(`${changeDateFormat(formValues.value.end)} ${formValues.value.endTime ? formValues.value.endTime : ''}`),
+      color: formValues.value.color,
+      allDay: formValues.value.allDay,
+    }
+  }
 })
 
 // form validation
 const checkValue = v => !!v || 'required'
 const compareStartEnd = () => {
-  if(formTask.value.start && formTask.value.end) {
-    return ((new Date(formTask.value.start).getTime() <= new Date(formTask.value.end).getTime()) && (formTask.value.start != '' || formTask.value.end != '')) || 'incorrect'
+  if(formValues.value.start && formValues.value.end) {
+    return ((new Date(changeDateFormat(formValues.value.start)).getTime() <= new Date(changeDateFormat(formValues.value.end)).getTime()) && (formValues.value.start != '' || formValues.value.end != '')) || 'incorrect'
   } else {
     return true
   }
 }
 const compareStartTimeEndTime = () => {
-  if(formTask.value.startTime && !formTask.value.endTime || !formTask.value.startTime && formTask.value.endTime) {
+  if(formValues.value.startTime && !formValues.value.endTime || !formValues.value.startTime && formValues.value.endTime) {
     return 'required'
   }
 
-  if((formTask.value.startTime && formTask.value.endTime && formTask.value.start && formTask.value.end) && (new Date(formTask.value.start).getTime() == new Date(formTask.value.end).getTime())) {
-    return (formTask.value.startTime <= formTask.value.endTime && (formTask.value.startTime != '' || formTask.value.endTime != '')) || 'incorrect'
+  if((formValues.value.startTime && formValues.value.endTime && formValues.value.start && formValues.value.end) && (new Date(changeDateFormat(formValues.value.start)).getTime() == new Date(changeDateFormat(formValues.value.end)).getTime())) {
+    return (formValues.value.startTime <= formValues.value.endTime && (formValues.value.startTime != '' || formValues.value.endTime != '')) || 'incorrect'
   } else {
     return true
   }
 }
+const checkValidDay = (v) => {
+  let date = changeDateFormat(v)
+
+  return !isNaN(Date.parse(date)) || 'Invalid date'
+}
+
 const rules = ref([checkValue])
-const dateRules = ref([checkValue , compareStartEnd])
+const dateRules = ref([checkValue, compareStartEnd, checkValidDay])
+const allDayDateRules = ref([checkValue, checkValidDay])
 const timeRules = ref([compareStartTimeEndTime])
 // watchers for validation
-watch(() => formTask.value.start, async (newValidationCounter, oldValidationCounter) => {
-  if(taskForm.value && !formTask.value.allDay && taskFormOpen.value) {
+watch(() => formValues.value.start, async (newValidationCounter, oldValidationCounter) => {
+  if(taskForm.value && !formValues.value.allDay && taskFormOpen.value) {
     taskForm.value.items[2].validate()
     taskForm.value.items[4].validate()
     taskForm.value.items[3].validate()
     taskForm.value.items[5].validate()
   }
 })
-watch(() => formTask.value.end, async (newValidationCounter, oldValidationCounter) => {
-  if(taskForm.value && !formTask.value.allDay && taskFormOpen.value) {
+watch(() => formValues.value.end, async (newValidationCounter, oldValidationCounter) => {
+  if(taskForm.value && !formValues.value.allDay && taskFormOpen.value) {
     taskForm.value.items[2].validate()
     taskForm.value.items[4].validate()
     taskForm.value.items[3].validate()
     taskForm.value.items[5].validate()
   }
 })
-watch(() => formTask.value.startTime, async (newValidationCounter, oldValidationCounter) => {
-  if(taskForm.value && !formTask.value.allDay && taskFormOpen.value) {
+watch(() => formValues.value.startTime, async (newValidationCounter, oldValidationCounter) => {
+  if(taskForm.value && !formValues.value.allDay && taskFormOpen.value) {
     taskForm.value.items[3].validate()
     taskForm.value.items[5].validate()
   }
 })
-watch(() => formTask.value.endTime, async (newValidationCounter, oldValidationCounter) => {
-  if(taskForm.value && !formTask.value.allDay && taskFormOpen.value) {
+watch(() => formValues.value.endTime, async (newValidationCounter, oldValidationCounter) => {
+  if(taskForm.value && !formValues.value.allDay && taskFormOpen.value) {
     taskForm.value.items[3].validate()
     taskForm.value.items[5].validate()
   }
@@ -515,7 +601,7 @@ const colors = ref([
 const pickerColor = ref('')
 function pickColor(isActive) {
   if(pickerColor.value) {
-    formTask.value.color = pickerColor.value
+    formValues.value.color = pickerColor.value
   }
   isActive.value = false
 }
@@ -524,64 +610,50 @@ function pickColor(isActive) {
 function addTaskClick() {
   taskFormEditing.value = false
   taskFormOpen.value = true
-  formTask.value.color = colors.value[2].value
-  formTask.value.start = new Date().getFullYear() + '-' + (new Date().getMonth()+1 < 10 ? `0${new Date().getMonth()+1}` : new Date().getMonth()+1) + '-' + (new Date().getDate() < 10 ? `0${new Date().getDate()}` : new Date().getDate())
+  formValues.value.color = colors.value[2].value
+  formValues.value.start = new Date().toLocaleDateString(locale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
+  formValues.value.end = new Date().toLocaleDateString(locale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
 }
 async function addTask(isActive) {
   const { valid } = await taskForm.value.validate()
 
   if(valid) {
-    let taskStart = ''
-    let taskEnd = ''
-    if(formTask.value.startTime) {
-      taskStart = formTask.value.start + ' ' + formTask.value.startTime
-    } else {
-      taskStart = formTask.value.start + ' 00:00'
-    }
-    if(formTask.value.endTime) {
-      taskEnd = formTask.value.end + ' ' + formTask.value.endTime
-    } else {
-      if(formTask.value.start == formTask.value.end) {
-        taskEnd = formTask.value.end + ' 01:00'
-      } else {
-        taskEnd = formTask.value.end + ' 00:00'
-      }
+    if(!formValues.value.allDay && !formValues.value.endTime && checkDays(changeDateFormat(formValues.value.start), changeDateFormat(formValues.value.end))) {
+      formValues.value.endTime = '01:00'
     }
 
-    let newTask =  {
-      id: createTaskId(),
-      title: formTask.value.title,
-      start: new Date(taskStart).getTime(),
-      end: new Date(taskEnd).getTime(),
-      color: formTask.value.color,
-      allDay: formTask.value.allDay,
-    }
+    let newTask = task.value
+    newTask.id = createTaskId()
 
-    calendarMain.value.getApi().addEvent(newTask)
+    calendarApi.addEvent(newTask)
     closeAddTask(isActive)
   }
 }
-function selectClick(selectInfo) {  
+function selectClick(selectInfo) { 
+  calendarApi.unselect()
   taskFormEditing.value = false
-  taskFormOpen.value = true
-  formTask.value.color = colors.value[2].value
-  formTask.value.start = selectInfo.start.getFullYear() + '-' + (selectInfo.start.getMonth()+1 < 10 ? `0${selectInfo.start.getMonth()+1}` : selectInfo.start.getMonth()+1) + '-' + (selectInfo.start.getDate() < 10 ? `0${selectInfo.start.getDate()}` : selectInfo.start.getDate())
-  formTask.value.startTime = (selectInfo.start.getHours() < 10 ? `0${selectInfo.start.getHours()}` : selectInfo.start.getHours()) + ':' + (selectInfo.start.getMinutes() < 10 ? `0${selectInfo.start.getMinutes()}` : selectInfo.start.getMinutes())
-  
-  if(selectInfo.allDay){
-    formTask.value.allDay = selectInfo.allDay
-  } else {
-    formTask.value.allDay = selectInfo.allDay
-    if(calendarViewMode.value !== 'dayGridMonth') {
-      formTask.value.end = selectInfo.end.getFullYear() + '-' + (selectInfo.end.getMonth()+1 < 10 ? `0${selectInfo.end.getMonth()+1}` : selectInfo.end.getMonth()+1) + '-' + (selectInfo.end.getDate() < 10 ? `0${selectInfo.end.getDate()}` : selectInfo.end.getDate())
-      formTask.value.endTime = (selectInfo.end.getHours() < 10 ? `0${selectInfo.end.getHours()}` : selectInfo.end.getHours()) + ':' + (selectInfo.end.getMinutes() < 10 ? `0${selectInfo.end.getMinutes()}` : selectInfo.end.getMinutes())
-    }
+
+  formValues.value.color = colors.value[2].value
+  formValues.value.start = new Date(selectInfo.start).toLocaleDateString(locale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
+  formValues.value.startTime = new Date(selectInfo.start).toLocaleString('ru', {hour: '2-digit', minute: '2-digit'})
+  formValues.value.end = new Date(selectInfo.end.getTime()-1*24*60*60*1000).toLocaleDateString(locale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
+  formValues.value.endTime = ''
+  formValues.value.allDay = selectInfo.allDay
+
+  if(!selectInfo.allDay && calendarViewMode.value !== 'dayGridMonth'){
+    formValues.value.end = new Date(selectInfo.end).toLocaleDateString(locale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
+    formValues.value.endTime = new Date(selectInfo.end).toLocaleString('ru', {hour: '2-digit', minute: '2-digit'})
   }
   if(calendarViewMode.value == 'dayGridMonth') {
-    formTask.value.allDay = false
+    formValues.value.allDay = false
+    formValues.value.startTime = ''
+
+    if(selectInfo.start.getTime() != selectInfo.end.getTime()-1*24*60*60*1000) {
+      formValues.value.end = new Date(selectInfo.end.getTime()-1*24*60*60*1000).toLocaleDateString(locale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
+    }
   }
 
-  calendarMain.value.getApi().unselect()
+  taskFormOpen.value = true
 }
 function closeAddTask(isActive) {
   taskForm.value.reset()
@@ -593,31 +665,30 @@ const taskInfoOpen = ref(false)
 const currentTask = ref({})
 
 function showTaskInfo(eventClickInfo) {
-  taskInfoOpen.value = true
   currentTask.value = eventClickInfo.event
+  taskInfoOpen.value = true
 }
 function checkDays(day1, day2) {
-  return new Date(`${new Date(day1).getFullYear()} ${new Date(day1).getMonth()+1} ${new Date(day1).getDate()}`).getTime() == new Date(`${new Date(day2).getFullYear()} ${new Date(day2).getMonth()+1} ${new Date(day2).getDate()}`).getTime()
+  return new Date(new Date(day1).toLocaleDateString('en')).getTime() == new Date(new Date(day2).toLocaleDateString('en')).getTime()
 }
+
 function deleteTask(isActive) {
-  calendarMain.value.getApi().getEventById(currentTask.value.id).remove()
+  calendarApi.getEventById(currentTask.value.id).remove()
   isActive.value = false
 }
 function editTaskClick() {
   taskFormEditing.value = true
 
-  formTask.value.title = currentTask.value.title
-  formTask.value.color = currentTask.value.backgroundColor
-  formTask.value.allDay = currentTask.value.allDay
+  formValues.value.title = currentTask.value.title
+  formValues.value.color = currentTask.value.backgroundColor
+  formValues.value.allDay = currentTask.value.allDay
+  formValues.value.start = currentTask.value.start.toLocaleDateString(locale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
 
-  if(currentTask.value.allDay) {
-    formTask.value.start = currentTask.value.start.getFullYear() + '-' + (currentTask.value.start.getMonth()+1 < 10 ? `0${currentTask.value.start.getMonth()+1}` : currentTask.value.start.getMonth()+1) + '-' + (currentTask.value.start.getDate() < 10 ? `0${currentTask.value.start.getDate()}` : currentTask.value.start.getDate())
-  } else {
-    formTask.value.start = currentTask.value.start.getFullYear() + '-' + (currentTask.value.start.getMonth()+1 < 10 ? `0${currentTask.value.start.getMonth()+1}` : currentTask.value.start.getMonth()+1) + '-' + (currentTask.value.start.getDate() < 10 ? `0${currentTask.value.start.getDate()}` : currentTask.value.start.getDate())
-    formTask.value.startTime = (currentTask.value.start.getHours() < 10 ? `0${currentTask.value.start.getHours()}` : currentTask.value.start.getHours()) + ':' + (currentTask.value.start.getMinutes() < 10 ? `0${currentTask.value.start.getMinutes()}` : currentTask.value.start.getMinutes())
+  if(!currentTask.value.allDay) {
+    formValues.value.startTime = currentTask.value.start.toLocaleString('ru', {hour: '2-digit', minute: '2-digit'})
 
-    formTask.value.end = currentTask.value.end.getFullYear() + '-' + (currentTask.value.end.getMonth()+1 < 10 ? `0${currentTask.value.end.getMonth()+1}` : currentTask.value.end.getMonth()+1) + '-' + (currentTask.value.end.getDate() < 10 ? `0${currentTask.value.end.getDate()}` : currentTask.value.end.getDate())
-    formTask.value.endTime = (currentTask.value.end.getHours() < 10 ? `0${currentTask.value.end.getHours()}` : currentTask.value.end.getHours()) + ':' + (currentTask.value.end.getMinutes() < 10 ? `0${currentTask.value.end.getMinutes()}` : currentTask.value.end.getMinutes())
+    formValues.value.end = currentTask.value.end.toLocaleDateString(locale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
+    formValues.value.endTime = currentTask.value.end.toLocaleString('ru', {hour: '2-digit', minute: '2-digit'})
   }
   taskFormOpen.value = true
 }
@@ -627,35 +698,19 @@ async function editTask(isActive) {
   const { valid } = await taskForm.value.validate()
 
   if(valid) {
-    let api = calendarMain.value.getApi()
-    api.getEventById(currentTask.value.id).setProp('title', formTask.value.title)
-    api.getEventById(currentTask.value.id).setProp('color', formTask.value.color)
-    api.getEventById(currentTask.value.id).setAllDay(formTask.value.allDay)
-    if(formTask.value.allDay) {
-      api.getEventById(currentTask.value.id).setStart(new Date(formTask.value.start).getTime(), { maintainDuration: true })
+    calendarApi.getEventById(currentTask.value.id).setProp('title', task.value.title)
+    calendarApi.getEventById(currentTask.value.id).setProp('color', task.value.color)
+    calendarApi.getEventById(currentTask.value.id).setAllDay(task.value.allDay)
+
+    if(formValues.value.allDay) {
+      calendarApi.getEventById(currentTask.value.id).setStart(task.value.start, { maintainDuration: true })
     } else {
-      let taskStart = ''
-      let taskEnd = ''
-      if(formTask.value.startTime) {
-        taskStart = formTask.value.start + ' ' + formTask.value.startTime
-      } else {
-        taskStart = formTask.value.start + ' 00:00'
-      }
-      if(formTask.value.endTime) {
-        taskEnd = formTask.value.end + ' ' + formTask.value.endTime
-      } else {
-        if(formTask.value.start == formTask.value.end) {
-          taskEnd = formTask.value.end + ' 01:00'
-        } else {
-          taskEnd = formTask.value.end + ' 00:00'
-        }
-      }
-      if(formTask.value.startTime && !formTask.value.endTime) {
-        taskEnd = formTask.value.end + ' ' + String(Number.parseInt(formTask.value.startTime.split(':')[0]) + 1) + ':' + formTask.value.startTime.split(':')[1]
+      if(!formValues.value.endTime && checkDays(changeDateFormat(formValues.value.start), changeDateFormat(formValues.value.end))) {
+        formValues.value.endTime = '01:00'
       }
 
-      api.getEventById(currentTask.value.id).setStart(new Date(taskStart).getTime())
-      api.getEventById(currentTask.value.id).setEnd(new Date(taskEnd).getTime())
+      calendarApi.getEventById(currentTask.value.id).setStart(task.value.start)
+      calendarApi.getEventById(currentTask.value.id).setEnd(task.value.end)
     }
     
     taskInfoOpen.value = false
@@ -686,9 +741,8 @@ const calendarViewModes = ref([
     value: 'listMonth'
   },
 ])
-
 const calendarViewMode = ref('dayGridMonth')
 watch(calendarViewMode, async (newValue, oldValue) => {
-  calendarMain.value.getApi().changeView(newValue)
+  calendarApi.changeView(newValue)
 })
 </script>
