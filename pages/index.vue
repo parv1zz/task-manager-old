@@ -33,7 +33,7 @@
 
       <Container class="flex-grow-1">
         <!-- calendar -->
-        <div class="h-100 d-flex flex-column">
+        <div class="h-100 d-flex flex-column w-75">
           <!-- header toolbar -->
           <div class="d-flex justify-space-between mb-6">
             <div>
@@ -603,11 +603,12 @@ function pickColor(isActive) {
 
 // add task
 function addTaskClick() {
+  let date = new Date()
   taskFormEditing.value = false
   taskFormOpen.value = true
   formValues.value.color = colors.value[2].value
-  formValues.value.start = new Date().toLocaleDateString(locale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
-  formValues.value.end = new Date().toLocaleDateString(locale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
+  formValues.value.start = date.toLocaleDateString(locale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
+  formValues.value.end = date.toLocaleDateString(locale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
 }
 async function addTask(isActive) {
   const { valid } = await taskForm.value.validate()
