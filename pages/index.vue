@@ -181,7 +181,7 @@
                       </v-menu>
                     </v-text-field>
                     <v-text-field
-                      width="120"
+                      width="140"
                       v-model="formValues.startTime"
                       :rules="timeRules"
                       :label="$t('time')"
@@ -198,7 +198,7 @@
                       >
                         <v-time-picker
                           v-model="pickerStartTime"
-                          @update:model-value="formValues.startTime = pickerStartTime"
+                          @update:model-value="formValues.startTime = new Date(`1/1/1 ${pickerStartTime}`).toLocaleString(locale, {hour: '2-digit', minute: '2-digit'})"
                           @update:minute="pickerOpen[2] = false"
                           :format="locale == 'en' ? 'ampm' : '24hr'"
                           :ampm-in-title="locale == 'en' ? true : false"
@@ -231,7 +231,7 @@
                       </v-menu>
                     </v-text-field>
                     <v-text-field
-                      width="120"
+                      width="140"
                       v-model="formValues.endTime"
                       :rules="timeRules"
                       :label="$t('time')"
@@ -248,7 +248,7 @@
                       >
                         <v-time-picker
                           v-model="pickerEndTime"
-                          @update:model-value="formValues.endTime = pickerEndTime"
+                          @update:model-value="formValues.endTime = new Date(`1/1/1 ${pickerEndTime}`).toLocaleString(locale, {hour: '2-digit', minute: '2-digit'})"
                           @update:minute="pickerOpen[3] = false"
                           :format="locale == 'en' ? 'ampm' : '24hr'"
                           :ampm-in-title="locale == 'en' ? true : false"
@@ -571,7 +571,7 @@ const compareStartTimeEndTime = () => {
   }
 
   if((formValues.value.startTime && formValues.value.endTime && formValues.value.start && formValues.value.end) && (new Date(changeDateFormat(formValues.value.start)).getTime() == new Date(changeDateFormat(formValues.value.end)).getTime())) {
-    return (formValues.value.startTime <= formValues.value.endTime && (formValues.value.startTime != '' || formValues.value.endTime != '')) || 'incorrect'
+    return (new Date(`1/1/1 ${formValues.value.startTime}`).toLocaleString('ru', { hour: '2-digit', minute: '2-digit' }) <= new Date(`1/1/1 ${formValues.value.endTime}`).toLocaleString('ru', { hour: '2-digit', minute: '2-digit' }) && (formValues.value.startTime != '' || formValues.value.endTime != '')) || 'incorrect'
   } else {
     return true
   }
@@ -725,10 +725,10 @@ function editTaskClick() {
   formValues.value.start = currentTask.value.start.toLocaleDateString(locale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
 
   if(!currentTask.value.allDay) {
-    formValues.value.startTime = currentTask.value.start.toLocaleString('ru', {hour: '2-digit', minute: '2-digit'})
+    formValues.value.startTime = currentTask.value.start.toLocaleString(locale.value, {hour: '2-digit', minute: '2-digit'})
 
     formValues.value.end = currentTask.value.end.toLocaleDateString(locale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
-    formValues.value.endTime = currentTask.value.end.toLocaleString('ru', {hour: '2-digit', minute: '2-digit'})
+    formValues.value.endTime = currentTask.value.end.toLocaleString(locale.value, {hour: '2-digit', minute: '2-digit'})
   }
   taskFormOpen.value = true
 }
