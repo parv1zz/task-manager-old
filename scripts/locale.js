@@ -10,3 +10,11 @@ export function getDatePattern(locale) {
     return 'дд.мм.гггг'
   }
 }
+
+export function getTimePattern(locale) {
+  if(locale == 'en') {
+    return 'hh:mm'
+  } else if(locale == 'ru') {
+    return 'чч:мм'
+  }
+}

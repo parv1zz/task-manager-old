@@ -4,12 +4,12 @@ import '@mdi/font/css/materialdesignicons.css'
 import 'vuetify/styles'
 import { createVuetify } from 'vuetify'
 import { aliases, mdi } from 'vuetify/iconsets/mdi'
-import { VDateInput } from 'vuetify/labs/VDateInput'
+import { VTimePicker } from 'vuetify/labs/VTimePicker'
 
 export default defineNuxtPlugin((app) => {
   const vuetify = createVuetify({
     components: {
-      VDateInput,
+      VTimePicker,
     },
     icons: {
       defaultSet: 'mdi',

@@ -31,9 +31,9 @@
         </Container>
       </div>
 
-      <Container class="flex-grow-1">
-        <!-- calendar -->
-        <div class="h-100 d-flex flex-column w-75">
+      <Container class="flex-grow-1 d-flex justify-space-between">
+        <!-- calendar main -->
+        <div class="h-100 d-flex flex-column w-100">
           <!-- header toolbar -->
           <div class="d-flex justify-space-between mb-6">
             <div>
@@ -157,7 +157,7 @@
                   </v-col>
                 </v-row>
                 <v-row v-if="!formValues.allDay">
-                  <v-col class="pt-0 d-flex justify-space-between ga-2">
+                  <v-col class="pt-0 d-flex justify-space-between ga-2 w-50">
                     <v-text-field
                       width="156"
                       v-model="formValues.start"
@@ -181,15 +181,33 @@
                       </v-menu>
                     </v-text-field>
                     <v-text-field
-                      max-width="100"
+                      width="120"
                       v-model="formValues.startTime"
                       :rules="timeRules"
                       :label="$t('time')"
+                      :placeholder="getTimePattern(locale)"
                       persistent-placeholder
-                      type="time"
-                    />
+                      readonly
+                    >
+                      <v-icon class="order-2" size="x-small" color="black">mdi-clock-outline</v-icon>
+                      <v-menu
+                        v-model="pickerOpen[2]"
+                        :close-on-content-click="false"
+                        activator="parent"
+                        transition="scale-transition"
+                      >
+                        <v-time-picker
+                          v-model="pickerStartTime"
+                          @update:model-value="formValues.startTime = pickerStartTime"
+                          @update:minute="pickerOpen[2] = false"
+                          :format="locale == 'en' ? 'ampm' : '24hr'"
+                          :ampm-in-title="locale == 'en' ? true : false"
+                          :title="$t('selectTime')"
+                        ></v-time-picker>
+                      </v-menu>
+                    </v-text-field>
                   </v-col>
-                  <v-col class="pt-0 d-flex justify-space-between ga-2">
+                  <v-col class="pt-0 d-flex justify-space-between ga-2 w-50">
                     <v-text-field
                       width="156"
                       v-model="formValues.end"
@@ -213,13 +231,31 @@
                       </v-menu>
                     </v-text-field>
                     <v-text-field
-                      max-width="100"
+                      width="120"
                       v-model="formValues.endTime"
                       :rules="timeRules"
                       :label="$t('time')"
+                      :placeholder="getTimePattern(locale)"
                       persistent-placeholder
-                      type="time"
-                    />
+                      readonly
+                    >
+                      <v-icon class="order-2" size="x-small" color="black">mdi-clock-outline</v-icon>
+                      <v-menu
+                        v-model="pickerOpen[3]"
+                        :close-on-content-click="false"
+                        activator="parent"
+                        transition="scale-transition"
+                      >
+                        <v-time-picker
+                          v-model="pickerEndTime"
+                          @update:model-value="formValues.endTime = pickerEndTime"
+                          @update:minute="pickerOpen[3] = false"
+                          :format="locale == 'en' ? 'ampm' : '24hr'"
+                          :ampm-in-title="locale == 'en' ? true : false"
+                          :title="$t('selectTime')"
+                        ></v-time-picker>
+                      </v-menu>
+                    </v-text-field>
                   </v-col>
                 </v-row>
                 <v-row v-if="formValues.allDay">
@@ -293,18 +329,24 @@
               <h3 style="font-size: 20px;">{{ currentTask.title }}</h3>
             </div>
             <div v-if="currentTask.allDay" class="mt-2 text-body-2">{{ currentTask.start.toLocaleString(locale, {day: 'numeric', month: 'short', year: 'numeric'}) }}</div>
-            <div v-if="(!currentTask.allDay && checkDays(currentTask.start, currentTask.end))" class="mt-2 text-body-2">
-              <span>{{ currentTask.start.toLocaleString(locale, {day: 'numeric', month: 'short', year: 'numeric'}) }} • </span>
-              <span class="font-weight-bold">{{ currentTask.start.toLocaleString(locale, { hour: 'numeric', minute: 'numeric', hour12: locale == 'en' ? true : false }) }}</span>
-              <span> - </span>
-              <span class="font-weight-bold">{{ currentTask.end.toLocaleString(locale, { hour: 'numeric', minute: 'numeric', hour12: locale == 'en' ? true : false }) }}</span>
-            </div>
-            <div v-if="(!currentTask.allDay && !checkDays(currentTask.start, currentTask.end))" class="mt-2 text-body-2">
-              <span>{{ currentTask.start.toLocaleString(locale, {day: 'numeric', month: 'short', year: 'numeric'}) }}</span>
-              <span class="font-weight-bold">{{ ' ' + currentTask.start.toLocaleString(locale, { hour: 'numeric', minute: 'numeric', hour12: locale == 'en' ? true : false }) }}</span>
-              <span> - {{ currentTask.end.toLocaleString(locale, {day: 'numeric', month: 'short', year: 'numeric'}) }}</span>
-              <span class="font-weight-bold">{{ ' ' + currentTask.end.toLocaleString(locale, { hour: 'numeric', minute: 'numeric', hour12: locale == 'en' ? true : false }) }}</span>
-            </div>
+            <v-tooltip location="top" :text="getDatesDuration(currentTask.start, currentTask.end)">
+              <template v-slot:activator="{ props }">
+                <div v-bind="props">
+                  <div v-if="(!currentTask.allDay && checkDays(currentTask.start, currentTask.end))" class="mt-2 text-body-2">
+                    <span>{{ currentTask.start.toLocaleString(locale, {day: 'numeric', month: 'short', year: 'numeric'}) }} • </span>
+                    <span class="font-weight-bold">{{ currentTask.start.toLocaleString(locale, { hour: 'numeric', minute: 'numeric', hour12: locale == 'en' ? true : false }) }}</span>
+                    <span> - </span>
+                    <span class="font-weight-bold">{{ currentTask.end.toLocaleString(locale, { hour: 'numeric', minute: 'numeric', hour12: locale == 'en' ? true : false }) }}</span>
+                  </div>
+                  <div v-if="(!currentTask.allDay && !checkDays(currentTask.start, currentTask.end))" class="mt-2 text-body-2">
+                    <span>{{ currentTask.start.toLocaleString(locale, {day: 'numeric', month: 'short', year: 'numeric'}) }}</span>
+                    <span class="font-weight-bold">{{ ' ' + currentTask.start.toLocaleString(locale, { hour: 'numeric', minute: 'numeric', hour12: locale == 'en' ? true : false }) }}</span>
+                    <span> - {{ currentTask.end.toLocaleString(locale, {day: 'numeric', month: 'short', year: 'numeric'}) }}</span>
+                    <span class="font-weight-bold">{{ ' ' + currentTask.end.toLocaleString(locale, { hour: 'numeric', minute: 'numeric', hour12: locale == 'en' ? true : false }) }}</span>
+                  </div>
+                </div>
+              </template>
+            </v-tooltip>
           </v-card-text>
           <v-card-actions>
             <v-btn icon="mdi-pencil" @click="editTaskClick"></v-btn>
@@ -351,7 +393,8 @@ function changeDateFormat(date) {
 
 // locale
 const { locale, setLocale } = useI18n()
-import { t, getDatePattern } from '@/scripts/locale'
+import { t, getDatePattern, getTimePattern } from '@/scripts/locale'
+import { checkDays, getDatesDuration } from '@/scripts/dates'
 
 // head
 useHead({
@@ -369,16 +412,17 @@ import allLocales from '@fullcalendar/core/locales-all'
 // calendar
 const calendarMain = ref()
 const calendarTasks = ref([])
-let calendarApi
+let calendarMainApi
+// let calendarDayApi
 
 // locales
 const locales = ref(['en', 'ru'])
 const appLocale = ref('en') // default locale
 watch(appLocale, async (newValue, oldValue) => {
-  calendarApi.setOption('locale', newValue)
+  calendarMainApi.setOption('locale', newValue)
   setLocale(newValue)
   localStorage.setItem('locale', appLocale.value)
-  calendarApi.setOption('firstDay', newValue == 'en' ? 0 : 1)
+  calendarMainApi.setOption('firstDay', newValue == 'en' ? 0 : 1)
 })
 
 // task id
@@ -392,7 +436,7 @@ function createTaskId() {
 // mounted
 onMounted(() => {
   // get calendar api
-  calendarApi = calendarMain.value.getApi()
+  calendarMainApi = calendarMain.value.getApi()
   
   // get locale
   if(localStorage.getItem('locale')) {
@@ -400,7 +444,7 @@ onMounted(() => {
   }
   // set locale
   setLocale(appLocale.value)
-  calendarApi.setOption('locale', appLocale.value)
+  calendarMainApi.setOption('locale', appLocale.value)
 
   // get task id
   taskId = JSON.parse(localStorage.getItem('id'))
@@ -410,7 +454,7 @@ onMounted(() => {
 
   if(tasks) {
     for(let i = 0; i < tasks.length; i++) {
-      calendarApi.addEvent(tasks[i])
+      calendarMainApi.addEvent(tasks[i])
     }
   }
 
@@ -418,7 +462,7 @@ onMounted(() => {
   document.getElementById('today-title').appendChild(document.querySelector('.fc-toolbar-title'))
   document.querySelector('.fc-header-toolbar').style.display = 'none'
 
-  calendarApi.updateSize()
+  calendarMainApi.updateSize()
 })
 
 watch(calendarTasks, async (newCalendarTasks, oldCalendarTasks) => {
@@ -453,12 +497,13 @@ const calendarMainOptions = ref({
   // navs
   navLinks: true,
   navLinkDayClick: function(date, jsEvent) {
-    calendarApi.changeView('timeGridDay')
-    calendarApi.gotoDate(date)
+    calendarMainApi.gotoDate(date)
 
     calendarViewMode.value = 'timeGridDay'
   },
-  navLinkWeekClick: function() {
+  navLinkWeekClick: function(weekStart) {
+    calendarMainApi.gotoDate(weekStart)
+
     calendarViewMode.value = 'timeGridWeek'
   },
   // 
@@ -468,7 +513,7 @@ const calendarMainOptions = ref({
   select: selectClick,
   eventDrop: function(info) {
     if(!info.event.allDay && !info.event.end) {
-      calendarApi.getEventById(info.event.id).setEnd(new Date(new Date(info.event.start).getTime()+ 60*60*1000))
+      calendarMainApi.getEventById(info.event.id).setEnd(new Date(new Date(info.event.start).getTime()+ 60*60*1000))
     }
   }
 })
@@ -494,7 +539,9 @@ const formValues = ref({
 // date pickers
 const pickerStart = ref(null)
 const pickerEnd = ref(null)
-const pickerOpen = ref([false, false])
+const pickerOpen = ref([false, false, false, false])
+const pickerStartTime = ref(null)
+const pickerEndTime = ref(null)
 
 // formatted task
 const task = computed({
@@ -621,12 +668,12 @@ async function addTask(isActive) {
     let newTask = task.value
     newTask.id = createTaskId()
 
-    calendarApi.addEvent(newTask)
+    calendarMainApi.addEvent(newTask)
     closeAddTask(isActive)
   }
 }
 function selectClick(selectInfo) { 
-  calendarApi.unselect()
+  calendarMainApi.unselect()
   taskFormEditing.value = false
 
   formValues.value.color = colors.value[2].value
@@ -664,12 +711,9 @@ function showTaskInfo(eventClickInfo) {
   currentTask.value = eventClickInfo.event
   taskInfoOpen.value = true
 }
-function checkDays(day1, day2) {
-  return new Date(new Date(day1).toLocaleDateString('en')).getTime() == new Date(new Date(day2).toLocaleDateString('en')).getTime()
-}
 
 function deleteTask(isActive) {
-  calendarApi.getEventById(currentTask.value.id).remove()
+  calendarMainApi.getEventById(currentTask.value.id).remove()
   isActive.value = false
 }
 function editTaskClick() {
@@ -694,19 +738,19 @@ async function editTask(isActive) {
   const { valid } = await taskForm.value.validate()
 
   if(valid) {
-    calendarApi.getEventById(currentTask.value.id).setProp('title', task.value.title)
-    calendarApi.getEventById(currentTask.value.id).setProp('color', task.value.color)
-    calendarApi.getEventById(currentTask.value.id).setAllDay(task.value.allDay)
+    calendarMainApi.getEventById(currentTask.value.id).setProp('title', task.value.title)
+    calendarMainApi.getEventById(currentTask.value.id).setProp('color', task.value.color)
+    calendarMainApi.getEventById(currentTask.value.id).setAllDay(task.value.allDay)
 
     if(formValues.value.allDay) {
-      calendarApi.getEventById(currentTask.value.id).setStart(task.value.start, { maintainDuration: true })
+      calendarMainApi.getEventById(currentTask.value.id).setStart(task.value.start, { maintainDuration: true })
     } else {
       if(!formValues.value.endTime && checkDays(changeDateFormat(formValues.value.start), changeDateFormat(formValues.value.end))) {
         formValues.value.endTime = '01:00'
       }
 
-      calendarApi.getEventById(currentTask.value.id).setStart(task.value.start)
-      calendarApi.getEventById(currentTask.value.id).setEnd(task.value.end)
+      calendarMainApi.getEventById(currentTask.value.id).setStart(task.value.start)
+      calendarMainApi.getEventById(currentTask.value.id).setEnd(task.value.end)
     }
     
     taskInfoOpen.value = false
@@ -739,6 +783,6 @@ const calendarViewModes = ref([
 ])
 const calendarViewMode = ref('dayGridMonth')
 watch(calendarViewMode, async (newValue, oldValue) => {
-  calendarApi.changeView(newValue)
+  calendarMainApi.changeView(newValue)
 })
 </script>
