@@ -31,7 +31,7 @@
         </Container>
       </div>
 
-      <Container class="flex-grow-1 d-flex justify-space-between">
+      <Container class="flex-grow-1">
         <!-- calendar main -->
         <div class="h-100 d-flex flex-column w-100">
           <!-- header toolbar -->
@@ -106,6 +106,21 @@
             :options="calendarMainOptions"
             class="w-100"
           >
+            <!-- <template v-slot:eventContent='arg'>
+              <div :style="`
+                width: 100%;
+                height: 100%;
+                border-radius: 3px;
+                margin: -2px 0;
+                padding-left: 5px;
+                border-left: 5px solid ${arg.event.backgroundColor};
+                background-color: color-mix(in srgb, ${arg.event.backgroundColor}, white 80%);
+              `">
+                <b>{{ arg.event.title }}</b><br />
+                <span v-if="!arg.event.allDay">{{ arg.event.start.toLocaleString(locale, { hour: 'numeric', minute: 'numeric' }) }} </span>
+                <span v-else>{{ $t('allDay') }}</span>
+              </div>
+            </template> -->
           </FullCalendar>
         </div>
       </Container>
@@ -158,6 +173,7 @@
                 </v-row>
                 <v-row v-if="!formValues.allDay">
                   <v-col class="pt-0 d-flex justify-space-between ga-2 w-50">
+                    <!-- start -->
                     <v-text-field
                       width="156"
                       v-model="formValues.start"
@@ -167,33 +183,37 @@
                       :placeholder="getDatePattern(locale)"
                       persistent-placeholder
                     >
-                      <v-icon class="order-2" size="x-small" color="black">mdi-calendar-blank</v-icon>
-                      <v-menu location="end" v-model="pickerOpen[0]" activator="parent" close-delay="0" :close-on-content-click="false">
+                      <v-icon id="pr-1" class="order-2 cursor-pointer" size="x-small" color="black">mdi-calendar-blank</v-icon>
+                      <v-menu
+                        v-model="pickerOpen[0]"
+                        activator="#pr-1"
+                        :close-on-content-click="false"
+                        transition="scale-transition"
+                      >
                         <v-locale-provider :locale="locale">
                           <v-date-picker
                             v-model="pickerStart"
-                            hide-header
-                            header=""
+                            :title="$t('selectDate')"
                             elevation="5"
                             @update:model-value="formValues.start = pickerStart.toLocaleDateString(locale, {year: 'numeric', month: '2-digit', day: '2-digit'}); pickerOpen[0] = false"
                           ></v-date-picker>
                         </v-locale-provider>
                       </v-menu>
                     </v-text-field>
+                    <!-- start time -->
                     <v-text-field
-                      :width="locale == 'en' ? '140' : '110'"
+                      :width="locale == 'en' ? '141' : '110'"
                       v-model="formValues.startTime"
-                      :rules="timeRules"
+                      :rules="[...timeRules, checkStartTimeValue]"
                       :label="$t('time')"
                       :placeholder="getTimePattern(locale)"
                       persistent-placeholder
-                      readonly
                     >
-                      <v-icon class="order-2" size="x-small" color="black">mdi-clock-outline</v-icon>
+                      <v-icon id="pr-3" class="order-2 cursor-pointer" size="x-small" color="black">mdi-clock-outline</v-icon>
                       <v-menu
                         v-model="pickerOpen[2]"
+                        activator="#pr-3"
                         :close-on-content-click="false"
-                        activator="parent"
                         transition="scale-transition"
                       >
                         <v-time-picker
@@ -208,6 +228,7 @@
                     </v-text-field>
                   </v-col>
                   <v-col class="pt-0 d-flex justify-space-between ga-2 w-50">
+                    <!-- end -->
                     <v-text-field
                       width="156"
                       v-model="formValues.end"
@@ -217,33 +238,37 @@
                       :placeholder="getDatePattern(locale)"
                       persistent-placeholder
                     >
-                      <v-icon class="order-2" size="x-small" color="black">mdi-calendar-blank</v-icon>
-                      <v-menu location="end" v-model="pickerOpen[1]" activator="parent" close-delay="0" :close-on-content-click="false">
+                      <v-icon id="pr-2" class="order-2 cursor-pointer" size="x-small" color="black">mdi-calendar-blank</v-icon>
+                      <v-menu
+                        v-model="pickerOpen[1]"
+                        activator="#pr-2"
+                        :close-on-content-click="false"
+                        transition="scale-transition"
+                      >
                         <v-locale-provider :locale="locale">
                           <v-date-picker
                             v-model="pickerEnd"
-                            hide-header
-                            header=""
+                            :title="$t('selectDate')"
                             elevation="5"
                             @update:model-value="formValues.end = pickerEnd.toLocaleDateString(locale, {year: 'numeric', month: '2-digit', day: '2-digit'}); pickerOpen[1] = false"
                           ></v-date-picker>
                         </v-locale-provider>
                       </v-menu>
                     </v-text-field>
+                    <!-- end time -->
                     <v-text-field
-                      :width="locale == 'en' ? '140' : '110'"
+                      :width="locale == 'en' ? '141' : '110'"
                       v-model="formValues.endTime"
-                      :rules="timeRules"
+                      :rules="[...timeRules, checkEndTimeValue]"
                       :label="$t('time')"
                       :placeholder="getTimePattern(locale)"
                       persistent-placeholder
-                      readonly
                     >
-                      <v-icon class="order-2" size="x-small" color="black">mdi-clock-outline</v-icon>
+                      <v-icon id="pr-4" class="order-2 cursor-pointer" size="x-small" color="black">mdi-clock-outline</v-icon>
                       <v-menu
                         v-model="pickerOpen[3]"
                         :close-on-content-click="false"
-                        activator="parent"
+                        activator="#pr-4"
                         transition="scale-transition"
                       >
                         <v-time-picker
@@ -382,7 +407,7 @@
 // change date format
 function changeDateFormat(date) {
   if(appLocale.value == 'ru') {
-    let date_split = date.split('.')
+    let date_split = String(date).split('.')
     let new_date = `${date_split[1]}/${date_split[0]}/${date_split[2]}`
     
     return new_date
@@ -413,7 +438,6 @@ import allLocales from '@fullcalendar/core/locales-all'
 const calendarMain = ref()
 const calendarTasks = ref([])
 let calendarMainApi
-// let calendarDayApi
 
 // locales
 const locales = ref(['en', 'ru'])
@@ -540,8 +564,29 @@ const formValues = ref({
 const pickerStart = ref(null)
 const pickerEnd = ref(null)
 const pickerOpen = ref([false, false, false, false])
-const pickerStartTime = ref(null)
-const pickerEndTime = ref(null)
+const pickerStartTime = ref('')
+const pickerEndTime = ref('')
+// watchers
+watch(() => formValues.value.start, (newV, oldV) => {
+  if(checkValidDay(newV) == true) {
+    pickerStart.value = new Date(changeDateFormat(newV))
+  }
+})
+watch(() => formValues.value.end, (newV, oldV) => {
+  if(checkValidDay(newV) == true) {
+    pickerEnd.value = new Date(changeDateFormat(newV))
+  }
+})
+watch(() => formValues.value.startTime, (newV, oldV) => {
+  if(checkValidTime(newV) == true) {
+    pickerStartTime.value = new Date(`1/1/1 ${newV}`).toLocaleString('ru', { hour: '2-digit', minute: '2-digit' })
+  }
+})
+watch(() => formValues.value.endTime, (newV, oldV) => {
+  if(checkValidTime(newV) == true) {
+    pickerEndTime.value = new Date(`1/1/1 ${newV}`).toLocaleString('ru', { hour: '2-digit', minute: '2-digit' })
+  }
+})
 
 // formatted task
 const task = computed({
@@ -558,61 +603,107 @@ const task = computed({
 
 // form validation
 const checkValue = v => !!v || 'required'
+// dates
 const compareStartEnd = () => {
   if(formValues.value.start && formValues.value.end) {
-    return ((new Date(changeDateFormat(formValues.value.start)).getTime() <= new Date(changeDateFormat(formValues.value.end)).getTime()) && (formValues.value.start != '' || formValues.value.end != '')) || 'incorrect'
+    return (
+      (new Date(changeDateFormat(formValues.value.start)).getTime() <= new Date(changeDateFormat(formValues.value.end)).getTime())
+      &&
+      (formValues.value.start != '' || formValues.value.end != '')
+    ) || 'incorrect'
   } else {
     return true
   }
 }
+// times
 const compareStartTimeEndTime = () => {
-  if(formValues.value.startTime && !formValues.value.endTime || !formValues.value.startTime && formValues.value.endTime) {
-    return 'required'
-  }
-
-  if((formValues.value.startTime && formValues.value.endTime && formValues.value.start && formValues.value.end) && (new Date(changeDateFormat(formValues.value.start)).getTime() == new Date(changeDateFormat(formValues.value.end)).getTime())) {
-    return (new Date(`1/1/1 ${formValues.value.startTime}`).toLocaleString('ru', { hour: '2-digit', minute: '2-digit' }) <= new Date(`1/1/1 ${formValues.value.endTime}`).toLocaleString('ru', { hour: '2-digit', minute: '2-digit' }) && (formValues.value.startTime != '' || formValues.value.endTime != '')) || 'incorrect'
+  if(
+    (formValues.value.startTime && formValues.value.endTime && formValues.value.start && formValues.value.end)
+    &&
+    (new Date(changeDateFormat(formValues.value.start)).getTime() == new Date(changeDateFormat(formValues.value.end)).getTime())
+  ) {
+    return (
+      (new Date(`1/1/1 ${formValues.value.startTime}`).toLocaleString('ru', { hour: '2-digit', minute: '2-digit' }) <= new Date(`1/1/1 ${formValues.value.endTime}`).toLocaleString('ru', { hour: '2-digit', minute: '2-digit' }))
+      &&
+      (formValues.value.startTime != '' || formValues.value.endTime != '')
+    ) || 'incorrect'
   } else {
     return true
   }
 }
-const checkValidDay = (v) => {
+const checkStartTimeValue = () => {
+  if(!formValues.value.startTime && formValues.value.endTime) {
+    return 'required'
+  } else {
+    return true
+  }
+}
+const checkEndTimeValue = () => {
+  if(formValues.value.startTime && !formValues.value.endTime) {
+    return 'required'
+  } else {
+    return true
+  }
+}
+// check valid  
+const checkValidDay = v => {
   let date = changeDateFormat(v)
 
   return !isNaN(Date.parse(date)) || 'Invalid date'
 }
+const checkValidTime = v => {
+  if(v) {
+    let time = new Date(`1/1/1 ${v}`)
+    return !isNaN(Date.parse(time)) || 'Invalid time'
+  }
+  return true
+}
 
 const rules = ref([checkValue])
-const dateRules = ref([checkValue, compareStartEnd, checkValidDay])
+const dateRules = ref([checkValue, checkValidDay, compareStartEnd])
+const timeRules = ref([checkValidTime, compareStartTimeEndTime])
 const allDayDateRules = ref([checkValue, checkValidDay])
-const timeRules = ref([compareStartTimeEndTime])
 // watchers for validation
 watch(() => formValues.value.start, async (newValidationCounter, oldValidationCounter) => {
-  if(taskForm.value && !formValues.value.allDay && taskFormOpen.value) {
-    taskForm.value.items[2].validate()
-    taskForm.value.items[4].validate()
-    taskForm.value.items[3].validate()
-    taskForm.value.items[5].validate()
+  if(taskForm.value && taskFormOpen.value && !formValues.value.allDay) {
+    if(compareStartEnd() == true) {
+      taskForm.value.items[2].validate()
+      taskForm.value.items[4].validate()
+      taskForm.value.items[3].validate()
+      taskForm.value.items[5].validate()
+    } else {
+      taskForm.value.items[3].validate()
+      taskForm.value.items[5].validate()
+    }
   }
 })
 watch(() => formValues.value.end, async (newValidationCounter, oldValidationCounter) => {
-  if(taskForm.value && !formValues.value.allDay && taskFormOpen.value) {
-    taskForm.value.items[2].validate()
-    taskForm.value.items[4].validate()
-    taskForm.value.items[3].validate()
-    taskForm.value.items[5].validate()
+  if(taskForm.value && taskFormOpen.value && !formValues.value.allDay) {
+    if(compareStartEnd() == true) {
+      taskForm.value.items[2].validate()
+      taskForm.value.items[4].validate()
+      taskForm.value.items[3].validate()
+      taskForm.value.items[5].validate()
+    } else {
+      taskForm.value.items[3].validate()
+      taskForm.value.items[5].validate()
+    }
   }
 })
 watch(() => formValues.value.startTime, async (newValidationCounter, oldValidationCounter) => {
-  if(taskForm.value && !formValues.value.allDay && taskFormOpen.value) {
-    taskForm.value.items[3].validate()
-    taskForm.value.items[5].validate()
+  if(taskForm.value && taskFormOpen.value && !formValues.value.allDay) {
+    if(compareStartTimeEndTime() == true) {
+      taskForm.value.items[3].validate()
+      taskForm.value.items[5].validate()
+    }
   }
 })
 watch(() => formValues.value.endTime, async (newValidationCounter, oldValidationCounter) => {
-  if(taskForm.value && !formValues.value.allDay && taskFormOpen.value) {
-    taskForm.value.items[3].validate()
-    taskForm.value.items[5].validate()
+  if(taskForm.value && taskFormOpen.value && !formValues.value.allDay) {
+    if(compareStartTimeEndTime() == true) {
+      taskForm.value.items[3].validate()
+      taskForm.value.items[5].validate()
+    }
   }
 })
 
@@ -638,6 +729,10 @@ const colors = ref([
   {
     title: 'purple',
     value: '#9C27B0',
+  },
+  {
+    title: 'pink',
+    value: '#F06292',
   },
 ])
 const pickerColor = ref('')
@@ -687,6 +782,9 @@ function selectClick(selectInfo) {
     formValues.value.end = new Date(selectInfo.end).toLocaleDateString(locale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
     formValues.value.endTime = new Date(selectInfo.end).toLocaleString('ru', {hour: '2-digit', minute: '2-digit'})
   }
+  if(selectInfo.allDay) {
+    formValues.value.startTime = ''
+  }
   if(calendarViewMode.value == 'dayGridMonth') {
     formValues.value.allDay = false
     formValues.value.startTime = ''
@@ -723,6 +821,8 @@ function editTaskClick() {
   formValues.value.color = currentTask.value.backgroundColor
   formValues.value.allDay = currentTask.value.allDay
   formValues.value.start = currentTask.value.start.toLocaleDateString(locale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
+  pickerStartTime.value = ''
+  pickerEndTime.value = ''
 
   if(!currentTask.value.allDay) {
     formValues.value.startTime = currentTask.value.start.toLocaleString(locale.value, {hour: '2-digit', minute: '2-digit'})

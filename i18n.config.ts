@@ -25,10 +25,11 @@ export default defineI18nConfig(() => ({
       pick: 'Pick',
       close: 'Close',
       selectTime: 'Select time',
+      selectDate: 'Select date',
+      // info
       days: 'd',
       hours: 'h',
       mins: 'm',
-      // info
       taskInfo: 'Task info',
       // colors
       red: 'red',
@@ -36,6 +37,7 @@ export default defineI18nConfig(() => ({
       blue: 'blue',
       orange: 'orange',
       purple: 'purple',
+      pink: 'pink',
       pickColor: 'pick color',
     },
     ru: {
@@ -61,10 +63,11 @@ export default defineI18nConfig(() => ({
       pick: 'Выбрать',
       close: 'Закрыть',
       selectTime: 'Выберите время',
+      selectDate: 'Выберите дату',
+      // info
       days: 'д',
       hours: 'ч',
       mins: 'м',
-      // info
       taskInfo: 'Информация о задаче',
       // colors
       red: 'красный',
@@ -72,6 +75,7 @@ export default defineI18nConfig(() => ({
       blue: 'синий',
       orange: 'оранжевый',
       purple: 'фиолетовый',
+      pink: 'розовый',
       pickColor: 'выбрать цвет',
     }
   }

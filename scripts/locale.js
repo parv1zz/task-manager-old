@@ -13,7 +13,7 @@ export function getDatePattern(locale) {
 
 export function getTimePattern(locale) {
   if(locale == 'en') {
-    return 'hh:mm'
+    return 'h:m a/p'
   } else if(locale == 'ru') {
     return 'чч:мм'
   }
