@@ -25,9 +25,9 @@ export default defineI18nConfig(() => ({
       pick: 'Pick',
       close: 'Close',
       selectTime: 'Select time',
-      days: 'd.',
-      hours: 'h.',
-      mins: 'm.',
+      days: 'd',
+      hours: 'h',
+      mins: 'm',
       // info
       taskInfo: 'Task info',
       // colors
@@ -61,9 +61,9 @@ export default defineI18nConfig(() => ({
       pick: 'Выбрать',
       close: 'Закрыть',
       selectTime: 'Выберите время',
-      days: 'д.',
-      hours: 'ч.',
-      mins: 'м.',
+      days: 'д',
+      hours: 'ч',
+      mins: 'м',
       // info
       taskInfo: 'Информация о задаче',
       // colors

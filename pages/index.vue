@@ -181,7 +181,7 @@
                       </v-menu>
                     </v-text-field>
                     <v-text-field
-                      width="140"
+                      :width="locale == 'en' ? '140' : '110'"
                       v-model="formValues.startTime"
                       :rules="timeRules"
                       :label="$t('time')"
@@ -231,7 +231,7 @@
                       </v-menu>
                     </v-text-field>
                     <v-text-field
-                      width="140"
+                      :width="locale == 'en' ? '140' : '110'"
                       v-model="formValues.endTime"
                       :rules="timeRules"
                       :label="$t('time')"
