@@ -2,6 +2,12 @@ html, body {
   overflow: hidden !important;
 }
 
+$xs: 320;
+$sm: 599.9px;
+$md: 879.9px;
+$lg: 1279.9px;
+$xl: 1919.9px;
+
 .fc-icon::before {
   vertical-align: top;
 }
@@ -9,4 +15,22 @@ html, body {
 .fc-toolbar-title {
   font-size: 28px;
   font-weight: bold;
+
+  @media screen and (max-width: $md) {
+    margin-left: 20px;
+  }
+  @media screen and (max-width: $sm) {
+    margin-left: 10px;
+    font-size: 20px;
+  }
+}
+#date-controls {
+  @media screen and (max-width: $md) {
+    margin-bottom: 12px;
+  }
+}
+#today-btn {
+  @media screen and (max-width: $md) {
+    margin-left: 0 !important;
+  }
 }

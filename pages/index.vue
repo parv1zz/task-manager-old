@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <div style="height: 100vh;" class="overflow-hidden d-flex flex-column">
-      <!-- lang select -->
+    <!-- lang select -->
       <div class="mb-4 bg-grey-lighten-3">
         <Container>
           <v-select
@@ -35,35 +35,40 @@
         <!-- calendar main -->
         <div class="h-100 d-flex flex-column w-100">
           <!-- header toolbar -->
-          <div class="d-flex justify-space-between mb-6">
-            <div>
-              <v-btn
-                icon="mdi-chevron-left"
-                size="small"
-                variant="outlined"
-                color="#2c3e50"
-                @click="calendarMain.getApi().prev()"
-              ></v-btn>
-              <v-btn
-                icon="mdi-chevron-right"
-                size="small"
-                variant="outlined"
-                class="ml-1"
-                color="#2c3e50"
-                @click="calendarMain.getApi().next()"
+          <div class="d-flex justify-space-between mb-6" :class="smAndDown ? 'flex-column' : 'flex-row'">
+            <div id="date-controls" class="d-flex justify-space-between">
+              <div id="date-controls-btns" class="d-flex">  
+                <v-btn
+                  icon="mdi-chevron-left"
+                  :size="xs ? 'x-small' : 'small'"
+                  variant="outlined"
+                  color="#2c3e50"
+                  @click="calendarMain.getApi().prev()"
                 ></v-btn>
-              <v-btn
-                height="40"
-                color="#2c3e50"
-                elevation="0"
-                class="ml-3"
-                slim
-                @click="calendarMain.getApi().today()"
-              >{{ $t('today') }}</v-btn>
+                <v-btn
+                  :size="xs ? 'x-small' : 'small'"
+                  icon="mdi-chevron-right"
+                  variant="outlined"
+                  class="ml-1"
+                  color="#2c3e50"
+                  @click="calendarMain.getApi().next()"
+                ></v-btn>
+                <v-btn
+                  id="today-btn"
+                  :width="smAndDown ? '32%' : ''"
+                  height="40"
+                  color="#2c3e50"
+                  elevation="0"
+                  class="ml-3"
+                  slim
+                  @click="calendarMain.getApi().today()"
+                >{{ $t('today') }}</v-btn>
+              </div>
             </div>
             <div id="today-title"></div>
-            <div class="d-flex ga-3">
+            <div id="date-btns" class="d-flex" :class="xs ? 'ga-2' : 'ga-3'">
               <v-select
+                :width="smAndDown ? '32%' : (xs ? '50%' : '')"
                 :items="calendarViewModes"
                 v-model="calendarViewMode"
                 density="compact"
@@ -87,17 +92,19 @@
                   <v-icon v-if="item.title == 'week'" icon="mdi-calendar-week"></v-icon>
                   <v-icon v-if="item.title == 'day'" icon="mdi-calendar-today"></v-icon>
                   <v-icon v-if="item.title == 'list'" icon="mdi-list-box-outline"></v-icon>
-                  <div class="ml-3">{{ $t(item.title) }}</div>
+                  <div v-if="!xs" class="ml-3">{{ $t(item.title) }}</div>
                 </template>
               </v-select>
               <v-btn
+                :width="smAndDown ? '32%' : (xs ? '50%' : '')"
+                :size="xs ? 'x-small' : 'default'"
                 height="40"
                 color="#2c3e50"
                 elevation="0"
                 slim
                 prepend-icon="mdi-plus"
                 @click="addTaskClick"
-              >{{ $t('addTask') }}</v-btn>
+              >{{ !xs ? $t('addTask') : '' }}</v-btn>
             </div>
           </div>
           <!-- calendar tasks -->
@@ -127,7 +134,7 @@
     </div>
 
     <!-- task form dialog -->
-    <v-dialog v-model="taskFormOpen" @afterLeave="taskForm.reset()" max-width="600">
+    <v-dialog :fullscreen="w660" v-model="taskFormOpen" @afterLeave="taskForm.reset()" :max-width="!w660 ? '600' : ''">
       <template v-slot:default="{ isActive }">
         <v-card :title="!taskFormEditing ? $t('addTask') : $t('editTask')">
           <v-card-text class="pb-0">
@@ -162,7 +169,7 @@
                       </template>
                       <template v-slot:selection="{ item, index }">
                         <v-badge class="ml-n1 mr-2" inline :color="item.value"></v-badge>
-                        {{ $te(item.title) ? $t(item.title) : item.title }}
+                        {{ !xs ? ($te(item.title) ? $t(item.title) : item.title) : '' }}
                       </template>
                       <template v-slot:append-item>
                         <v-divider></v-divider>
@@ -171,8 +178,8 @@
                     </v-select>
                   </v-col>
                 </v-row>
-                <v-row v-if="!formValues.allDay">
-                  <v-col class="pt-0 d-flex justify-space-between ga-2 w-50">
+                <v-row v-if="!formValues.allDay" :class="w660 ? 'flex-column' : ''">
+                  <v-col class="pt-0 d-flex justify-space-between ga-2" :class="w660 ? 'w-100' : 'w-50'">
                     <!-- start -->
                     <v-text-field
                       width="156"
@@ -227,7 +234,7 @@
                       </v-menu>
                     </v-text-field>
                   </v-col>
-                  <v-col class="pt-0 d-flex justify-space-between ga-2 w-50">
+                  <v-col class="pt-0 d-flex justify-space-between ga-2" :class="w660 ? 'w-100' : 'w-50'">
                     <!-- end -->
                     <v-text-field
                       width="156"
@@ -404,9 +411,37 @@
 </template>
 
 <script setup>
+// responsive
+import { useDisplay } from 'vuetify'
+const { xs, sm, width, smAndDown, mdAndUp } = useDisplay()
+const w660 = computed({
+  get() {
+    return width.value < 660
+  }
+})
+
+watch(smAndDown, (n, o) => {
+  let dateControlsBtns = document.getElementById('date-controls-btns')
+  let dateBtns = document.getElementById('date-btns')
+
+  if(n) {
+    dateControlsBtns.appendChild(document.querySelector('.fc-toolbar-title'))
+    dateBtns.insertBefore(document.getElementById('today-btn'), dateBtns.firstChild)
+  }
+})
+watch(mdAndUp, (n, o) => {
+  let dateControlsBtns = document.getElementById('date-controls-btns')
+
+  if(n) {
+    document.getElementById('today-title').appendChild(document.querySelector('.fc-toolbar-title'))
+    dateControlsBtns.appendChild(document.getElementById('today-btn'))
+  }
+})
+
+
 // change date format
 function changeDateFormat(date) {
-  if(appLocale.value == 'ru') {
+  if(locale.value == 'ru') {
     let date_split = String(date).split('.')
     let new_date = `${date_split[1]}/${date_split[0]}/${date_split[2]}`
     
@@ -483,10 +518,18 @@ onMounted(() => {
   }
 
   // today title
-  document.getElementById('today-title').appendChild(document.querySelector('.fc-toolbar-title'))
+  if(mdAndUp.value) document.getElementById('today-title').appendChild(document.querySelector('.fc-toolbar-title'))
+  if(smAndDown.value) {
+    let dateBtns = document.getElementById('date-btns')
+    document.getElementById('date-controls-btns').appendChild(document.querySelector('.fc-toolbar-title'))
+    dateBtns.insertBefore(document.getElementById('today-btn'), dateBtns.firstChild)
+  }
   document.querySelector('.fc-header-toolbar').style.display = 'none'
 
-  calendarMainApi.updateSize()
+  // calendar size
+  setTimeout(() => {
+    calendarMainApi.updateSize()
+  }, 5);
 })
 
 watch(calendarTasks, async (newCalendarTasks, oldCalendarTasks) => {
@@ -503,7 +546,11 @@ const calendarMainOptions = ref({
   firstDay: locale.value == 'en' ? 0 : 1,
   fixedWeekCount: false,
   weekNumbers: true,
-  snapDuration: '00:15:00',
+  snapDuration: '00:10:00',
+
+  longPressDelay: 0,
+  eventLongPressDelay: 0,
+  selectLongPressDelay: 0,
   
   height: '100%',
   locales: allLocales,
@@ -709,7 +756,7 @@ watch(() => formValues.value.endTime, async (newValidationCounter, oldValidation
 
 // color picker
 const pickColorBtn = ref()
-const colors = ref([
+const colors = [
   {
     title: 'red',
     value: '#F44336',
@@ -734,7 +781,7 @@ const colors = ref([
     title: 'pink',
     value: '#F06292',
   },
-])
+]
 const pickerColor = ref('')
 function pickColor(isActive) {
   if(pickerColor.value) {
@@ -748,9 +795,11 @@ function addTaskClick() {
   let date = new Date()
   taskFormEditing.value = false
   taskFormOpen.value = true
-  formValues.value.color = colors.value[2].value
+  formValues.value.color = colors[2].value
   formValues.value.start = date.toLocaleDateString(locale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
   formValues.value.end = date.toLocaleDateString(locale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
+  pickerStartTime.value = ''
+  pickerEndTime.value = ''
 }
 async function addTask(isActive) {
   const { valid } = await taskForm.value.validate()
@@ -771,7 +820,7 @@ function selectClick(selectInfo) {
   calendarMainApi.unselect()
   taskFormEditing.value = false
 
-  formValues.value.color = colors.value[2].value
+  formValues.value.color = colors[2].value
   formValues.value.start = new Date(selectInfo.start).toLocaleDateString(locale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
   formValues.value.startTime = new Date(selectInfo.start).toLocaleString('ru', {hour: '2-digit', minute: '2-digit'})
   formValues.value.end = new Date(selectInfo.end.getTime()-1*24*60*60*1000).toLocaleDateString(locale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
@@ -863,7 +912,7 @@ function closeEditTask(isActive) {
 }
 
 // view mode
-const calendarViewModes = ref([
+const calendarViewModes = [
   {
     title: 'month',
     value: 'dayGridMonth'
@@ -880,7 +929,7 @@ const calendarViewModes = ref([
     title: 'list',
     value: 'listMonth'
   },
-])
+]
 const calendarViewMode = ref('dayGridMonth')
 watch(calendarViewMode, async (newValue, oldValue) => {
   calendarMainApi.changeView(newValue)

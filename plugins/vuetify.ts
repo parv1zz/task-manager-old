@@ -8,6 +8,17 @@ import { VTimePicker } from 'vuetify/labs/VTimePicker'
 
 export default defineNuxtPlugin((app) => {
   const vuetify = createVuetify({
+    ssr: true,
+    display: {
+      mobileBreakpoint: 'sm',
+      thresholds: {
+        xs: 320,
+        sm: 600,
+        md: 880,
+        lg: 1280,
+        xl: 1920,
+      }
+    },
     components: {
       VTimePicker,
     },
