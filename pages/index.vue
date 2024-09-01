@@ -1,8 +1,8 @@
 <template>
   <v-app>
-    <div style="height: 100vh;" class="overflow-hidden d-flex flex-column">
-    <!-- lang select -->
-      <div class="mb-4 bg-grey-lighten-3">
+    <div>
+      <!-- lang select -->
+      <div class="bg-grey-lighten-3">
         <Container>
           <v-select
             width="100"
@@ -31,11 +31,11 @@
         </Container>
       </div>
 
-      <Container class="flex-grow-1">
+      <div>
         <!-- calendar main -->
-        <div class="h-100 d-flex flex-column w-100">
+        <div class="w-100">
           <!-- header toolbar -->
-          <div class="d-flex justify-space-between mb-6" :class="smAndDown ? 'flex-column' : 'flex-row'">
+          <div class="d-flex justify-space-between my-4" :class="smAndDown ? 'flex-column' : 'flex-row'">
             <div id="date-controls" class="d-flex justify-space-between">
               <div id="date-controls-btns" class="d-flex">  
                 <v-btn
@@ -107,13 +107,13 @@
               >{{ !xs ? $t('addTask') : '' }}</v-btn>
             </div>
           </div>
-          <!-- calendar tasks -->
+          <!-- calendar -->
           <FullCalendar
             ref="calendarMain"
             :options="calendarMainOptions"
             class="w-100"
           >
-            <!-- <template v-slot:eventContent='arg'>
+            <!-- <template v-slot:eventContent="arg">
               <div :style="`
                 width: 100%;
                 height: 100%;
@@ -128,20 +128,52 @@
                 <span v-else>{{ $t('allDay') }}</span>
               </div>
             </template> -->
+            <!-- day headers -->
+            <template v-slot:dayHeaderContent="arg">
+              <!-- week -->
+              <div v-if="calendarViewMode == 'timeGridWeek'">
+                <div v-if="locale == 'ru'">
+                  {{ arg.text.split(' ')[0].replace(',', '') }}<br />
+                  {{ arg.text.split(' ')[1] }}
+                </div>
+                <div v-if="locale == 'en'">
+                  {{ arg.text.split(' ')[1] }}<br />
+                  {{ arg.text.split(' ')[0] }}<br />
+                </div>
+              </div>
+              <!-- list -->
+              <div v-if="calendarViewMode == 'listMonth'" class="d-flex justify-space-between">
+                <span>
+                  {{ calendarViewMode == 'listMonth' ? `${arg.text}` : '' }}
+                </span>
+                <span>
+                  {{ new Date(arg.date).toLocaleDateString(locale, { weekday: 'long' }) }}
+                </span>
+              </div>
+              <!-- others -->
+              <div v-if="calendarViewMode !== 'timeGridWeek' && calendarViewMode !== 'listMonth'">
+                {{ arg.text }}
+              </div>
+            </template>
           </FullCalendar>
         </div>
-      </Container>
+      </div>
     </div>
 
     <!-- task form dialog -->
-    <v-dialog :fullscreen="w660" v-model="taskFormOpen" @afterLeave="taskForm.reset()" :max-width="!w660 ? '600' : ''">
+    <v-dialog
+      :fullscreen="w660"
+      v-model="taskFormOpen"
+      @afterLeave="taskForm.reset()"
+      :max-width="!w660 ? '600' : ''"
+    >
       <template v-slot:default="{ isActive }">
         <v-card :title="!taskFormEditing ? $t('addTask') : $t('editTask')">
           <v-card-text class="pb-0">
             <v-form ref="taskForm">
               <v-container class="pa-0">
                 <v-row>
-                  <v-col>
+                  <v-col :class="w660 ? 'pr-1' : ''">
                     <v-text-field
                       autofocus
                       v-model="formValues.title"
@@ -151,7 +183,7 @@
                       persistent-placeholder
                     />
                   </v-col>
-                  <v-col>
+                  <v-col :class="w660 ? 'pl-1' : ''">
                     <v-select
                       v-model="formValues.color"
                       :items="colors"
@@ -361,24 +393,22 @@
               <h3 style="font-size: 20px;">{{ currentTask.title }}</h3>
             </div>
             <div v-if="currentTask.allDay" class="mt-2 text-body-2">{{ currentTask.start.toLocaleString(locale, {day: 'numeric', month: 'short', year: 'numeric'}) }}</div>
-            <v-tooltip location="top" :text="getDatesDuration(currentTask.start, currentTask.end)">
-              <template v-slot:activator="{ props }">
-                <div v-bind="props">
-                  <div v-if="(!currentTask.allDay && checkDays(currentTask.start, currentTask.end))" class="mt-2 text-body-2">
-                    <span>{{ currentTask.start.toLocaleString(locale, {day: 'numeric', month: 'short', year: 'numeric'}) }} • </span>
-                    <span class="font-weight-bold">{{ currentTask.start.toLocaleString(locale, { hour: 'numeric', minute: 'numeric', hour12: locale == 'en' ? true : false }) }}</span>
-                    <span> - </span>
-                    <span class="font-weight-bold">{{ currentTask.end.toLocaleString(locale, { hour: 'numeric', minute: 'numeric', hour12: locale == 'en' ? true : false }) }}</span>
-                  </div>
-                  <div v-if="(!currentTask.allDay && !checkDays(currentTask.start, currentTask.end))" class="mt-2 text-body-2">
-                    <span>{{ currentTask.start.toLocaleString(locale, {day: 'numeric', month: 'short', year: 'numeric'}) }}</span>
-                    <span class="font-weight-bold">{{ ' ' + currentTask.start.toLocaleString(locale, { hour: 'numeric', minute: 'numeric', hour12: locale == 'en' ? true : false }) }}</span>
-                    <span> - {{ currentTask.end.toLocaleString(locale, {day: 'numeric', month: 'short', year: 'numeric'}) }}</span>
-                    <span class="font-weight-bold">{{ ' ' + currentTask.end.toLocaleString(locale, { hour: 'numeric', minute: 'numeric', hour12: locale == 'en' ? true : false }) }}</span>
-                  </div>
-                </div>
-              </template>
-            </v-tooltip>
+            <div>
+              <div v-if="(!currentTask.allDay && checkDays(currentTask.start, currentTask.end))" class="mt-2 text-body-2">
+                <span>{{ currentTask.start.toLocaleString(locale, {day: 'numeric', month: 'short', year: 'numeric'}) }} • </span>
+                <span class="font-weight-bold">{{ currentTask.start.toLocaleString(locale, { hour: 'numeric', minute: 'numeric', hour12: locale == 'en' ? true : false }) }}</span>
+                <span> - </span>
+                <span class="font-weight-bold">{{ currentTask.end.toLocaleString(locale, { hour: 'numeric', minute: 'numeric', hour12: locale == 'en' ? true : false }) }}</span>
+                <span class="text-body-2" v-if="!currentTask.allDay"> ({{ getDatesDuration(currentTask.start, currentTask.end) }})</span>
+              </div>
+              <div v-if="(!currentTask.allDay && !checkDays(currentTask.start, currentTask.end))" class="mt-2 text-body-2">
+                <span>{{ currentTask.start.toLocaleString(locale, {day: 'numeric', month: 'short', year: 'numeric'}) }}</span>
+                <span class="font-weight-bold">{{ ' ' + currentTask.start.toLocaleString(locale, { hour: 'numeric', minute: 'numeric', hour12: locale == 'en' ? true : false }) }}</span>
+                <span> - {{ currentTask.end.toLocaleString(locale, {day: 'numeric', month: 'short', year: 'numeric'}) }}</span>
+                <span class="font-weight-bold">{{ ' ' + currentTask.end.toLocaleString(locale, { hour: 'numeric', minute: 'numeric', hour12: locale == 'en' ? true : false }) }}</span>
+                <div class="text-body-2" v-if="!currentTask.allDay"> ({{ getDatesDuration(currentTask.start, currentTask.end) }})</div>
+              </div>
+            </div>
           </v-card-text>
           <v-card-actions>
             <v-btn icon="mdi-pencil" @click="editTaskClick"></v-btn>
@@ -414,9 +444,17 @@
 // responsive
 import { useDisplay } from 'vuetify'
 const { xs, sm, width, smAndDown, mdAndUp } = useDisplay()
+
 const w660 = computed({
   get() {
     return width.value < 660
+  }
+})
+watch(w660, (n, o) => {
+  if(n) {
+    calendarMainApi.setOption('weekNumbers', false)
+  } else {
+    calendarMainApi.setOption('weekNumbers', true)
   }
 })
 
@@ -538,24 +576,34 @@ watch(calendarTasks, async (newCalendarTasks, oldCalendarTasks) => {
 
 // calendar settings
 const calendarMainOptions = ref({
+  // settings
   plugins: [ dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin ],
   initialView: 'dayGridMonth',
   events: calendarTasks.value,
 
+  // date settings
   dayMaxEvents: true,
   firstDay: locale.value == 'en' ? 0 : 1,
-  fixedWeekCount: false,
-  weekNumbers: true,
   snapDuration: '00:10:00',
+  fixedWeekCount: false,
+  weekNumbers: !w660.value ? true : false,
+  views: {
+    week: {
+      dayHeaderFormat: { weekday: 'short', day: 'numeric' },
+    }
+  },
 
-  longPressDelay: 0,
-  eventLongPressDelay: 0,
-  selectLongPressDelay: 0,
+  // mobile
+  longPressDelay: 250,
+  eventLongPressDelay: 250,
+  selectLongPressDelay: 250,
   
-  height: '100%',
+  // other
+  height: '100vh',
   locales: allLocales,
   locale: appLocale.value,
 
+  // header
   headerToolbar: {
     left: 'prev,next today',
     center: 'title',
@@ -586,7 +634,7 @@ const calendarMainOptions = ref({
     if(!info.event.allDay && !info.event.end) {
       calendarMainApi.getEventById(info.event.id).setEnd(new Date(new Date(info.event.start).getTime()+ 60*60*1000))
     }
-  }
+  },
 })
 function updateTasks(events) {
   calendarTasks.value = events
