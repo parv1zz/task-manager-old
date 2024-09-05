@@ -3,18 +3,39 @@ export function t(name) {
   return nuxtApp.$i18n.t(name)
 }
 
-export function getDatePattern(locale) {
-  if(locale == 'en') {
-    return 'mm/dd/yyyy'
-  } else if(locale == 'ru') {
-    return 'дд.мм.гггг'
+export const appLocale = ref('en') // default locale
+export const locales = ref(['en', 'ru'])
+watch(appLocale, (n, o) => {
+  changeLocale(n)
+})
+export function getLocale() {
+  if(localStorage.getItem('locale')) {
+    appLocale.value = localStorage.getItem('locale')
   }
+  changeLocale(appLocale.value)
 }
 
-export function getTimePattern(locale) {
-  if(locale == 'en') {
-    return 'h:m a/p'
-  } else if(locale == 'ru') {
-    return 'чч:мм'
-  }
+import { calendarApi } from "./calendar"
+
+// get vuetify
+export let vuetify
+export function setVuetify(v) {
+  vuetify = v
+}
+
+export function changeLocale(locale) {
+  // i18n
+  const nuxtApp = useNuxtApp()
+  nuxtApp.$i18n.setLocale(locale)
+  // nuxtApp.$switchLocalePath(locale)
+
+  // vuetify
+  vuetify.locale.current = locale
+
+  // calendar
+  calendarApi.setOption('locale', locale)
+  calendarApi.setOption('firstDay', locale == 'en' ? 0 : 1)
+  calendarApi.setOption('weekText', locale == 'en' ? 'W' : 'H')
+  
+  localStorage.setItem('locale', locale)
 }

@@ -1,14 +1,7 @@
 {
-  "i18n-ally.localesPaths": [
-    "D:/Parviz/web/projects/task-manager"
-  ],
-  "i18n-ally.extract.ignored": [
-    "+ Добавить задачу",
-    "+ Add task"
-  ],
   "i18n-ally.extract.ignoredByFiles": {
-    "i18n.config.ts": [
-      "+ Add task"
+    "pages\\index.vue": [
+      "Task manager"
     ]
   }
 }

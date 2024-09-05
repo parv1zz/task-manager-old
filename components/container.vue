@@ -4,9 +4,8 @@
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .container {
   max-width: 1920px;
-  padding: 8px;
 }
 </style>

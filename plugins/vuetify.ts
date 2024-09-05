@@ -6,6 +6,8 @@ import { createVuetify } from 'vuetify'
 import { aliases, mdi } from 'vuetify/iconsets/mdi'
 import { VTimePicker } from 'vuetify/labs/VTimePicker'
 
+import { en, ru } from 'vuetify/locale'
+
 export default defineNuxtPlugin((app) => {
   const vuetify = createVuetify({
     ssr: true,
@@ -28,6 +30,10 @@ export default defineNuxtPlugin((app) => {
       sets: {
         mdi,
       },
+    },
+    locale: {
+      locale: 'en',
+      messages: { en, ru },
     },
   })
   app.vueApp.use(vuetify)

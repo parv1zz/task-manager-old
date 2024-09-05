@@ -1,0 +1,53 @@
+{
+  "colors": {
+    "red": "красный",
+    "green": "зеленый",
+    "blue": "синий",
+    "orange": "оранжевый",
+    "purple": "фиолетовый",
+    "pink": "розовый",
+    "pickColor": "Выберите цвет"
+  },
+  "Header": {
+    "today": "Сегодня",
+    "month": "месяц",
+    "week": "неделя",
+    "day": "день"
+  },
+  "TaskForm": {
+    "addTask": "Добавить задачу",
+    "editTask": "Редактировать задачу",
+    "title": "Название",
+    "start": "Начало",
+    "end": "Конец",
+    "time": "Время",
+    "date": "Дата",
+    "selectTime": "Выбор времени",
+    "allDay": "Весь день",
+    "add": "Добавить",
+    "edit": "Редактировать",
+    "cancel": "Отменить",
+    "pick": "Выбрать",
+    "close": "Закрыть",
+    "reminders": "Напоминания",
+    "addReminder": "Доб. напоминание"
+  },
+  "TaskInfo": {
+    "taskInfo": "Информация о задаче",
+    "days": "д",
+    "hours": "ч",
+    "mins": "м"
+  },
+  "settings": {
+    "title": "Настройки",
+    "language-and-region": "Язык и регион",
+    "import-and-export": "Импорт & экспорт",
+    "calendar": "Календарь",
+    "language": "Язык",
+    "app-language": "Язык приложения",
+    "import": "Импорт",
+    "import-from-json-file": "Импортировать из JSON файла",
+    "export": "Экспорт",
+    "export-to-json-file": "Экспортировать в JSON файл"
+  }
+}

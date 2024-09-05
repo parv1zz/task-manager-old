@@ -1,0 +1,53 @@
+{
+  "colors": {
+    "red": "red",
+    "green": "green",
+    "blue": "blue",
+    "orange": "orange",
+    "purple": "purple",
+    "pink": "pink",
+    "pickColor": "Pick color"
+  },
+  "Header": {
+    "today": "Today",
+    "month": "month",
+    "week": "week",
+    "day": "day"
+  },
+  "TaskForm": {
+    "addTask": "Add task",
+    "editTask": "Edit task",
+    "title": "Title",
+    "start": "Start",
+    "end": "End",
+    "time": "Time",
+    "date": "Date",
+    "selectTime": "Select time",
+    "allDay": "All day",
+    "add": "Add",
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "pick": "Pick",
+    "close": "Close",
+    "reminders": "Reminders",
+    "addReminder": "Add reminder"
+  },
+  "TaskInfo": {
+    "taskInfo": "Task info",
+    "days": "d",
+    "hours": "h",
+    "mins": "m"
+  },
+  "settings": {
+    "title": "Settings",
+    "language-and-region": "Language and region",
+    "import-and-export": "Import & export",
+    "calendar": "Calendar",
+    "language": "Language",
+    "app-language": "Set app language",
+    "import": "Import",
+    "import-from-json-file": "Import from JSON file",
+    "export": "Export",
+    "export-to-json-file": "Export to JSON file"
+  }
+}
