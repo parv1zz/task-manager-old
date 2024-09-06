@@ -34,9 +34,9 @@
   },
   "TaskInfo": {
     "taskInfo": "Task info",
-    "days": "d",
-    "hours": "h",
-    "mins": "m"
+    "d": "d",
+    "h": "h",
+    "m": "m"
   },
   "settings": {
     "title": "Settings",
@@ -49,5 +49,14 @@
     "import-from-json-file": "Import from JSON file",
     "export": "Export",
     "export-to-json-file": "Export to JSON file"
+  },
+  "reminders": {
+    "5m": "5 minutes before",
+    "10m": "10 minutes before",
+    "15m": "15 minutes before",
+    "30m": "30 minutes before",
+    "1h": "1 hour before",
+    "2h": "2 hours before",
+    "1d": "1 day before"
   }
 }

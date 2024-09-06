@@ -3,7 +3,7 @@
     width="450"
     max-height="600"
     v-model="taskFormOpen"
-    @afterLeave="taskForm.reset(); calendarApi.unselect()"
+    @afterLeave="taskForm.reset(); calendarApi.unselect(); resetRemindes()"
   >
     <template v-slot:default="{ isActive }">
       <v-card :title="!taskFormEditing ? $t('TaskForm.addTask') : $t('TaskForm.editTask')">
@@ -23,7 +23,7 @@
               <div>
                 <v-select
                   width="80"
-                  :items="settings.colors"
+                  :items="colors"
                   v-model="formValues.color"
                 >
                   <template v-slot:item="{ props, item }">
@@ -94,7 +94,7 @@
                       @update:minute="pickers.open[2] = false"
                       :format="appLocale == 'en' ? 'ampm' : '24hr'"
                       :ampm-in-title="appLocale == 'en' ? true : false"
-                      :max="pickers.endTime"
+                      :max="checkDays(changeDateFormat(formValues.start), changeDateFormat(formValues.end)) ? pickers.endTime : null"
                       color="primary"
                       :title="$t('TaskForm.selectTime')"
                     ></v-time-picker>
@@ -148,7 +148,7 @@
                       @update:minute="pickers.open[3] = false"
                       :format="appLocale == 'en' ? 'ampm' : '24hr'"
                       :ampm-in-title="appLocale == 'en' ? true : false"
-                      :min="pickers.startTime"
+                      :min="checkDays(changeDateFormat(formValues.start), changeDateFormat(formValues.end)) ? pickers.startTime : null"
                       color="primary"
                       :title="$t('TaskForm.selectTime')"
                     ></v-time-picker>
@@ -186,48 +186,52 @@
             <div>
               <v-checkbox v-model="formValues.allDay" :label="$t('TaskForm.allDay')" hide-details class="mt-n1"></v-checkbox>
             </div>
-            <v-divider v-if="!taskFormEditing" class="mx-n6"></v-divider>
-            <v-expansion-panels v-if="!taskFormEditing" class="mt-2">
-              <v-expansion-panel
-                :title="$t('TaskForm.reminders')"
-                elevation="0"
-                static
-              >
-                <v-expansion-panel-text class="pa-0">
-                  <div>
-                    <div class="d-flex ga-2 mb-2">
-                      <v-btn
-                        height="40"
-                        width="53%"
-                        prepend-icon="mdi-bell-outline"
-                        style="text-transform: none;"
-                        variant="text"
-                      >{{ $t('TaskForm.addReminder') }}</v-btn>
-                      <v-select
-                        density="compact"
-                        :items="['5 minutes before', '10 minutes before', '15 minutes before', '30 minutes before', '1 hour before', '2 hours before', '1 day before']"
-                        hide-details
-                      ></v-select>
-                    </div>
-                    <div class="d-flex flex-wrap">
-                      <v-chip
-                        closable
-                        @click:close=""
-                      >
-                        15min
-                      </v-chip>
-                      <v-chip
-                        closable
-                        @click:close=""
-                      >
-                        30min
-                      </v-chip>
-                    </div>
-                  </div>
-                </v-expansion-panel-text>
-              </v-expansion-panel>
-            </v-expansion-panels>
           </v-form>
+          <v-divider v-if="!taskFormEditing" class="mx-n6"></v-divider>
+          <v-expansion-panels v-if="!taskFormEditing" class="mt-2">
+            <v-expansion-panel
+              elevation="0"
+              static
+            >
+              <v-expansion-panel-title>{{ $t('TaskForm.reminders') }}</v-expansion-panel-title>
+              <v-expansion-panel-text class="pa-0">
+                <div>
+                  <div class="d-flex justify-space-between ga-2 mb-2">
+                    <v-btn
+                      width="200"
+                      height="40"
+                      prepend-icon="mdi-bell-outline"
+                      style="text-transform: none;"
+                      variant="outlined"
+                      color="primary"
+                      @click="addReminder()"
+                    >{{ $t('TaskForm.addReminder') }}</v-btn>
+                    <v-select
+                      width="140"
+                      :items="allReminders"
+                      v-model="reminder"
+                      density="compact"
+                      hide-details
+                      placeholder="Choose time"
+                    >
+                      <template v-slot:item="{ props, item }">
+                        <v-list-item v-bind="props" :title="$t(`reminders.${item.title}`)"></v-list-item>
+                      </template>
+                      <template v-slot:selection="{ item, index }"><span class="text-truncate">{{ $t(`reminders.${item.title}`) }}</span></template>
+                    </v-select>
+                  </div>
+                  <div class="d-flex flex-wrap" style="gap: 4px 2px;">
+                    <v-chip
+                      v-for="(rem, index) in reminders"
+                      :key="rem.id"
+                      closable
+                      @click:close="reminders.splice(index, 1)"
+                    >{{ t(`reminders.${rem.title}`) }}</v-chip>
+                  </div>
+                </div>
+              </v-expansion-panel-text>
+            </v-expansion-panel>
+          </v-expansion-panels>
         </v-card-text>
         <v-card-actions>
           <v-btn
@@ -273,11 +277,34 @@
 <script setup>
 import { calendarApi } from '@/scripts/calendar'
 import { changeDateFormat, getDatePattern, getTimePattern, checkDays } from '@/scripts/dates'
-import { appLocale } from '@/scripts/locale'
+import { appLocale, t } from '@/scripts/locale'
+import { allReminders } from '@/scripts/reminders'
+
+// reminders
+const reminderId = ref(0)
+function createReminderId() {
+  reminderId.value++
+  return reminderId.value
+}
+const reminder = ref()
+const reminders = ref([])
+function addReminder() {
+  if(reminder.value) {
+    Notification.requestPermission().then(permission => {
+      if(permission === 'granted') {
+        reminders.value.push({ id: createReminderId(), title: allReminders.value.find(v => v.value == reminder.value).title, value: reminder.value, done: false, })
+      }
+    })
+  }
+}
+function resetRemindes() {
+  reminderId.value = 0
+  reminder.value = null
+  reminders.value = []
+}
 
 import { taskFormOpen, taskFormEditing, formattedTask } from '@/scripts/form'
 const taskForm = ref()
-
 // form values
 import { formValues } from '@/scripts/form'
 // date pickers
@@ -290,7 +317,7 @@ const pickers = ref({
   color: '',
 })
 // color picker
-import { settings } from '@/scripts/settings'
+import { colors } from '@/scripts/settings'
 const pickColorBtn = ref()
 function pickColor(isActive) {
   if(pickers.value.color) {
@@ -389,7 +416,8 @@ async function add(isActive) {
       formValues.value.endTime = '01:00'
     }
 
-    addTask(formattedTask.value)
+    let taskId = addTask(formattedTask.value, reminders.value)
+
     isActive.value = false
   }
 }

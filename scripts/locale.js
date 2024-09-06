@@ -1,3 +1,5 @@
+import { calendarApi } from "./calendar"
+
 export function t(name) {
   const nuxtApp = useNuxtApp()
   return nuxtApp.$i18n.t(name)
@@ -15,8 +17,6 @@ export function getLocale() {
   changeLocale(appLocale.value)
 }
 
-import { calendarApi } from "./calendar"
-
 // get vuetify
 export let vuetify
 export function setVuetify(v) {
@@ -27,7 +27,6 @@ export function changeLocale(locale) {
   // i18n
   const nuxtApp = useNuxtApp()
   nuxtApp.$i18n.setLocale(locale)
-  // nuxtApp.$switchLocalePath(locale)
 
   // vuetify
   vuetify.locale.current = locale

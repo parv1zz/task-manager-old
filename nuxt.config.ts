@@ -3,7 +3,6 @@ import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 
 export default defineNuxtConfig({
   css: ['~/assets/scss/main.scss'],
-  compatibilityDate: '2024-04-03',
   devtools: { enabled: true },
   build: {
     transpile: ['vuetify'],
@@ -37,9 +36,9 @@ export default defineNuxtConfig({
         file: './locales/ru.json',
       },
     ],
-    lazy: true,
+    lazy: false,
     defaultLocale: 'en',
     strategy: 'prefix_except_default',
-    vueI18n: './i18n.config.ts'
+    vueI18n: './plugins/i18n.config.ts',
   },
 })

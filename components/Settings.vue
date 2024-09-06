@@ -200,8 +200,6 @@
 
 <script setup>
 import { locales, appLocale } from '@/scripts/locale'
-import { settings } from '@/scripts/settings'
-import { rules } from '@/scripts/validation'
 
 const dialog = ref(false)
 </script>

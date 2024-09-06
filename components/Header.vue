@@ -1,5 +1,6 @@
 <template>
-  <v-toolbar>
+  <!--  color="blue-grey-lighten-5" -->
+  <v-toolbar color="white">
     <!-- controls -->
     <v-btn
       height="40"
@@ -86,7 +87,7 @@ import Settings from '@/components/Settings'
 import { calendarApi, calendarViewMode, calendarViewModes } from '@/scripts/calendar'
 import { taskFormEditing, taskFormOpen, formValues } from '@/scripts/form'
 import { appLocale } from '@/scripts/locale'
-import { settings } from '@/scripts/settings'
+import { colors } from '@/scripts/settings'
 
 const titleDateOpen = ref(false)
 const titleDate = ref(null)
@@ -100,7 +101,7 @@ function addTaskClick() {
   taskFormOpen.value = true
 
   let date = new Date()
-  formValues.value.color = settings.value.colors[2].value
+  formValues.value.color = colors[2].value
   formValues.value.start = date.toLocaleDateString(appLocale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
   formValues.value.end = date.toLocaleDateString(appLocale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
 }

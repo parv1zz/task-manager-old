@@ -3,6 +3,9 @@ import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import allLocales from '@fullcalendar/core/locales-all'
 import { appLocale } from './locale'
+import { taskInfoOpen, infoTask } from './info'
+import { taskFormOpen, taskFormEditing, formValues } from './form'
+import { colors } from './settings'
 
 export let calendarApi
 export function setCalendarApi(api) {
@@ -90,18 +93,15 @@ function updateTasks(events) {
   calendarTasks.value = events
 }
 
-import { taskInfoOpen, infoTask } from './info'
 function showTaskInfo(info) {
   infoTask.value = info.event
   taskInfoOpen.value = true
 }
 
-import { taskFormOpen, taskFormEditing, formValues } from './form'
-import { settings } from './settings'
 function selectTask(info) {
   taskFormEditing.value = false
 
-  formValues.value.color = settings.value.colors[2].value
+  formValues.value.color = colors[2].value
   formValues.value.start = new Date(info.start).toLocaleDateString(appLocale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
   formValues.value.startTime = new Date(info.start).toLocaleString('ru', {hour: '2-digit', minute: '2-digit'})
   formValues.value.end = new Date(info.end.getTime()-1*24*60*60*1000).toLocaleDateString(appLocale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
@@ -153,6 +153,7 @@ export function initCalendar() {
   document.querySelector('.fc-toolbar').style.display = 'none'
 
   calendarApi.updateSize()
+  calendarApi.changeView(calendarViewMode.value)
 }
 
 export function getTasks() {
@@ -164,11 +165,15 @@ export function getTasks() {
   }
 }
 
-export function addTask(task) {
+export function addTask(task, reminders) {
   let newTask = task
   newTask.id = createTaskId()
+  newTask.reminders = reminders
+  // newTask.display = 'block'
 
   calendarApi.addEvent(newTask)
+
+  return newTask.id
 }
 
 export function editTask(id, task) {

@@ -2,36 +2,56 @@
   <v-dialog
     v-model="taskInfoOpen"
     @afterLeave="infoTask = {}"
-    v-if="!infoTask.hasOwnProperty('title')"
     max-width="400"
   >
     <template v-slot:default="{ isActive }">
       <v-card>
         <v-card-title>{{ $t('TaskInfo.taskInfo') }}</v-card-title>
         <v-card-subtitle v-if="infoTask.allDay">{{ $t('TaskForm.allDay') }}</v-card-subtitle>
-        <v-card-text>
-          <div class="d-flex align-center ga-2">
-            <v-badge class="mx-n1" inline :color="infoTask.backgroundColor"></v-badge>
-            <h3 style="font-size: 20px;">{{ infoTask.title }}</h3>
-          </div>
-          <div v-if="infoTask.allDay" class="mt-2 text-body-2">{{ infoTask.start.toLocaleString(appLocale, {day: 'numeric', month: 'short', year: 'numeric'}) }}</div>
-          <div>
-            <div v-if="(!infoTask.allDay && checkDays(infoTask.start, infoTask.end))" class="mt-2 text-body-2">
-              <span>{{ infoTask.start.toLocaleString(appLocale, {day: 'numeric', month: 'short', year: 'numeric'}) }} • </span>
-              <span class="font-weight-bold">{{ infoTask.start.toLocaleString(appLocale, { hour: 'numeric', minute: 'numeric', hour12: appLocale == 'en' ? true : false }) }}</span>
-              <span> - </span>
-              <span class="font-weight-bold">{{ infoTask.end.toLocaleString(appLocale, { hour: 'numeric', minute: 'numeric', hour12: appLocale == 'en' ? true : false }) }}</span>
-              <span class="text-body-2" v-if="!infoTask.allDay"> ({{ getDatesDuration(infoTask.start, infoTask.end) }})</span>
-            </div>
-            <div v-if="(!infoTask.allDay && !checkDays(infoTask.start, infoTask.end))" class="mt-2 text-body-2">
-              <span>{{ infoTask.start.toLocaleString(appLocale, {day: 'numeric', month: 'short', year: 'numeric'}) }}</span>
-              <span class="font-weight-bold">{{ ' ' + infoTask.start.toLocaleString(appLocale, { hour: 'numeric', minute: 'numeric', hour12: appLocale == 'en' ? true : false }) }}</span>
-              <span> - {{ infoTask.end.toLocaleString(appLocale, {day: 'numeric', month: 'short', year: 'numeric'}) }}</span>
-              <span class="font-weight-bold">{{ ' ' + infoTask.end.toLocaleString(appLocale, { hour: 'numeric', minute: 'numeric', hour12: appLocale == 'en' ? true : false }) }}</span>
-              <div class="text-body-2" v-if="!infoTask.allDay"> ({{ getDatesDuration(infoTask.start, infoTask.end) }})</div>
-            </div>
-          </div>
+        <v-card-text class="py-1">
+          <!-- info -->
+          <v-list-item class="px-3" :class="infoTask.extendedProps.reminders.length > 0 ? 'mb-4' : ''">
+            <template v-slot:prepend>
+              <v-list-item-action start>
+                <v-badge class="mx-n1" inline :color="infoTask.backgroundColor"></v-badge>
+              </v-list-item-action>
+            </template>
+            <v-list-item-title>
+              <span class="text-22 font-weight-regular">{{ infoTask.title }}</span>
+            </v-list-item-title>
+            <v-list-item-subtitle class="mt-1" opacity="1">
+              <div v-if="infoTask.allDay" class="text-14">{{ infoTask.start.toLocaleString(appLocale, {day: 'numeric', month: 'short', year: 'numeric'}) }}</div>
+              <div>
+                <div v-if="(!infoTask.allDay && checkDays(infoTask.start, infoTask.end))" class="text-14">
+                  <span>{{ infoTask.start.toLocaleString(appLocale, {day: 'numeric', month: 'short', year: 'numeric'}) }} • </span>
+                  <span class="font-weight-bold">{{ infoTask.start.toLocaleString(appLocale, { hour: 'numeric', minute: 'numeric', hour12: appLocale == 'en' ? true : false }) }}</span>
+                  <span> - </span>
+                  <span class="font-weight-bold">{{ infoTask.end.toLocaleString(appLocale, { hour: 'numeric', minute: 'numeric', hour12: appLocale == 'en' ? true : false }) }}</span>
+                  <span class="text-14 font-weight-bold" v-if="!infoTask.allDay"> ({{ getDatesDuration(infoTask.start, infoTask.end) }})</span>
+                </div>
+                <div v-if="(!infoTask.allDay && !checkDays(infoTask.start, infoTask.end))" class="text-14">
+                  <span>{{ infoTask.start.toLocaleString(appLocale, {day: 'numeric', month: 'short', year: 'numeric'}) }}</span>
+                  <span class="font-weight-bold" v-if="infoTask.start.toLocaleString('ru', { hour: 'numeric', minute: 'numeric'}) != '00:00'">{{ ' ' + infoTask.start.toLocaleString(appLocale, { hour: 'numeric', minute: 'numeric', hour12: appLocale == 'en' ? true : false }) }}</span>
+                  <span> - {{ infoTask.end.toLocaleString(appLocale, {day: 'numeric', month: 'short', year: 'numeric'}) }}</span>
+                  <span class="font-weight-bold" v-if="infoTask.end.toLocaleString('ru', { hour: 'numeric', minute: 'numeric'}) != '00:00'">{{ ' ' + infoTask.end.toLocaleString(appLocale, { hour: 'numeric', minute: 'numeric', hour12: appLocale == 'en' ? true : false }) }}</span>
+                  <span class="text-14 font-weight-bold" v-if="!infoTask.allDay"> ({{ getDatesDuration(infoTask.start, infoTask.end) }})</span>
+                </div>
+              </div>
+            </v-list-item-subtitle>
+          </v-list-item>
+          <!-- reminders -->
+          <v-list-item class="px-3" v-if="infoTask.extendedProps.reminders.length > 0">
+            <template v-slot:prepend>
+              <v-list-item-action start>
+                <v-icon size="small">mdi-bell-outline</v-icon>
+              </v-list-item-action>
+            </template>
+            <v-list-item-title class="d-flex flex-wrap" style="gap: 4px;">
+              <v-chip size="small" :class="reminder.done ? 'text-decoration-line-through' : ''" v-for="reminder in infoTask.extendedProps.reminders">{{ $t(`reminders.${reminder.title}`) }}</v-chip>
+            </v-list-item-title>
+          </v-list-item>
         </v-card-text>
+
         <v-card-actions>
           <v-btn icon="mdi-pencil" @click="editTaskClick"></v-btn>
           <v-btn icon="mdi-delete" @click="deleteTask(infoTask); isActive.value = false"></v-btn>
@@ -60,6 +80,7 @@ function editTaskClick() {
   if(!infoTask.value.allDay) {
     formValues.value.startTime = infoTask.value.start.toLocaleString(appLocale.value, {hour: '2-digit', minute: '2-digit'})
     formValues.value.endTime = infoTask.value.end.toLocaleString(appLocale.value, {hour: '2-digit', minute: '2-digit'})
+    formValues.value.end = infoTask.value.end.toLocaleDateString(appLocale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
   }
   taskFormOpen.value = true
 }

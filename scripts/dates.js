@@ -4,7 +4,7 @@ export function changeDateFormat(date) {
   if(appLocale.value == 'ru') {
     let date_split = String(date).split('.')
     let new_date = `${date_split[1]}/${date_split[0]}/${date_split[2]}`
-    
+
     return new_date
   } else {
     return date
@@ -24,12 +24,12 @@ export function getDatesDuration(date1, date2) {
   hours = Math.floor(hours)
 
   if(days >= 1) {
-    return `${days}${t('TaskInfo.days')}${hours != 0 ? ' ' + hours + t('TaskInfo.hours') : ''}${mins != 0 ? ' ' + mins + t('TaskInfo.mins') : ''}`
+    return `${days}${t('TaskInfo.d')}${hours != 0 ? ' ' + hours + t('TaskInfo.h') : ''}${mins != 0 ? ' ' + mins + t('TaskInfo.m') : ''}`
   }
   if(hours >= 1) {
-    return `${hours}${t('TaskInfo.hours')}${mins != 0 ? ' ' + mins + t('TaskInfo.mins') : ''}`
+    return `${hours}${t('TaskInfo.h')}${mins != 0 ? ' ' + mins + t('TaskInfo.m') : ''}`
   }
-  return `${mins + t('TaskInfo.mins')}`
+  return `${mins + t('TaskInfo.m')}`
 }
 
 export const getDatePattern = computed({

@@ -24,20 +24,14 @@ useHead({
 
 // calendar
 import FullCalendar from '@fullcalendar/vue3'
-import { calendarApi, setCalendarApi, getTaskId, calendarOptions, getTasks, calendarViewMode, calendarViewModes, initCalendar } from '@/scripts/calendar'
-// form
-import { taskFormOpen, taskFormEditing, formValues } from '@/scripts/form'
-// task info
-import { infoTask } from '@/scripts/info'
+import { calendarApi, setCalendarApi, calendarOptions, getTaskId, getTasks, initCalendar } from '@/scripts/calendar'
 // header
 import Header from '@/components/Header'
 // dialogs
 import TaskForm from '@/components/TaskForm'
 import TaskInfo from '@/components/TaskInfo'
 // locale
-import { appLocale, getLocale, locales, setVuetify, changeLocale } from '@/scripts/locale'
-// settings
-import { settings } from '@/scripts/settings'
+import { getLocale, setVuetify, } from '@/scripts/locale'
 
 const calendar = ref()
 
