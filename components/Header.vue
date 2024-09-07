@@ -1,5 +1,4 @@
 <template>
-  <!--  color="blue-grey-lighten-5" -->
   <v-toolbar color="white">
     <!-- controls -->
     <v-btn

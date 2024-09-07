@@ -22,6 +22,8 @@ useHead({
   title: 'Task manager',
 })
 
+// get vuetify obj
+import { getVuetify } from '@/scripts/vuetify'
 // calendar
 import FullCalendar from '@fullcalendar/vue3'
 import { calendarApi, setCalendarApi, calendarOptions, getTaskId, getTasks, initCalendar } from '@/scripts/calendar'
@@ -31,13 +33,13 @@ import Header from '@/components/Header'
 import TaskForm from '@/components/TaskForm'
 import TaskInfo from '@/components/TaskInfo'
 // locale
-import { getLocale, setVuetify, } from '@/scripts/locale'
+import { getLocale } from '@/scripts/locale'
 
 const calendar = ref()
 
 onMounted(() => {
   // init
-  setVuetify(calendar.value.$vuetify)
+  getVuetify(calendar.value.$vuetify)
   setCalendarApi(calendar.value.getApi())
   initCalendar()
   getTaskId()

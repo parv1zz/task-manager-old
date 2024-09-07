@@ -198,7 +198,7 @@
                 <div>
                   <div class="d-flex justify-space-between ga-2 mb-2">
                     <v-btn
-                      width="200"
+                      width="190"
                       height="40"
                       prepend-icon="mdi-bell-outline"
                       style="text-transform: none;"
