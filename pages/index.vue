@@ -76,5 +76,6 @@ onMounted(() => {
     snackbar.value.title = payload.notification.title
     snackbar.value.text = payload.notification.body
   })
+  
 })
 </script>
