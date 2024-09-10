@@ -19,6 +19,7 @@
     "@mdi/font": "^7.4.47",
     "@nuxtjs/i18n": "^8.5.0",
     "firebase": "^10.13.1",
+    "firebase-admin": "^12.4.0",
     "nuxt": "^3.12.4",
     "vue": "latest"
   },

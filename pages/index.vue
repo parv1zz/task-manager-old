@@ -13,6 +13,23 @@
 
     <TaskForm />
     <TaskInfo />
+    <v-snackbar
+      v-model="snackbar.open"
+      timeout="2000"
+    >
+      <h3>{{ snackbar.title }}</h3>
+      <div>{{ snackbar.text }}</div>
+
+      <template v-slot:actions>
+        <v-btn
+          color="blue"
+          variant="text"
+          @click="snackbar.open = false"
+        >
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
   </div>
 </template>
 
@@ -22,8 +39,6 @@ useHead({
   title: 'Task manager',
 })
 
-// get vuetify obj
-import { getVuetify } from '@/scripts/vuetify'
 // calendar
 import FullCalendar from '@fullcalendar/vue3'
 import { calendarApi, setCalendarApi, calendarOptions, getTaskId, getTasks, initCalendar } from '@/scripts/calendar'
@@ -37,13 +52,29 @@ import { getLocale } from '@/scripts/locale'
 
 const calendar = ref()
 
+// messaging
+import { onMessage } from 'firebase/messaging'
+const { $messaging, $token } = useNuxtApp()
+
+const snackbar = ref({
+  open: false,
+  title: '',
+  text: '',
+})
+
 onMounted(() => {
   // init
-  getVuetify(calendar.value.$vuetify)
   setCalendarApi(calendar.value.getApi())
   initCalendar()
   getTaskId()
   getTasks()
   getLocale()
+
+  onMessage($messaging, payload => {
+    console.log('Message on client: ', payload)
+    snackbar.value.open = true
+    snackbar.value.title = payload.notification.title
+    snackbar.value.text = payload.notification.body
+  })
 })
 </script>
