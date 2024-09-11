@@ -1,5 +1,6 @@
 <template>
   <div class="d-flex flex-column overflow-hidden" style="height: 100vh;">
+    <v-btn @click="notify('a', 'b', new Date())">Notify</v-btn>
     <Header />
 
     <div class="flex-grow-1">
@@ -13,9 +14,10 @@
 
     <TaskForm />
     <TaskInfo />
+
     <v-snackbar
       v-model="snackbar.open"
-      timeout="2000"
+      timeout="5000"
     >
       <h3>{{ snackbar.title }}</h3>
       <div>{{ snackbar.text }}</div>
@@ -25,9 +27,7 @@
           color="blue"
           variant="text"
           @click="snackbar.open = false"
-        >
-          Close
-        </v-btn>
+        >Close</v-btn>
       </template>
     </v-snackbar>
   </div>
@@ -55,6 +55,7 @@ const calendar = ref()
 // messaging
 import { onMessage } from 'firebase/messaging'
 const { $messaging, $token } = useNuxtApp()
+import { notify } from '~/scripts/notification'
 
 const snackbar = ref({
   open: false,
@@ -72,10 +73,11 @@ onMounted(() => {
 
   onMessage($messaging, payload => {
     console.log('Message on client: ', payload)
+
+    // snackbar
     snackbar.value.open = true
     snackbar.value.title = payload.notification.title
     snackbar.value.text = payload.notification.body
   })
-  
 })
 </script>

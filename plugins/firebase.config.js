@@ -15,6 +15,9 @@ export default defineNuxtPlugin(nuxtApp => {
 
   if(process.client) {
     const messaging = getMessaging(app)
+    nuxtApp.vueApp.provide('messaging', messaging)
+    nuxtApp.provide('messaging', messaging)
+
     const token = getToken(messaging, { vapidKey: 'BJVV0i6wUJp8rm6ErVdhWI8M-p7YLsciSw7A_BH_xE2ab22_YEMamWJdc6-D0gyLt6Og9u78utZsDp7CpzZUtao' }).then((currentToken) => {
       if (currentToken) {
         nuxtApp.vueApp.provide('token', currentToken)
@@ -25,8 +28,5 @@ export default defineNuxtPlugin(nuxtApp => {
     }).catch((err) => {
       console.error('An error occurred while retrieving token. ', err)
     })
-
-    nuxtApp.vueApp.provide('messaging', messaging)
-    nuxtApp.provide('messaging', messaging)
   }
 })
