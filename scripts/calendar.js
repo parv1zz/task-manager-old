@@ -154,6 +154,16 @@ export function initCalendar() {
 
   calendarApi.updateSize()
   calendarApi.changeView(calendarViewMode.value)
+
+  // check all dones
+  for(const event of calendarApi.getEvents()) {
+    for(const reminder of event.extendedProps.reminders) {
+      let timeOld = (event.start.getTime() - reminder.value) <= new Date().getTime()
+      if(timeOld) {
+        reminder.done = true
+      }
+    }
+  }
 }
 
 export function getTasks() {
@@ -192,4 +202,10 @@ export function editTask(id, task) {
 
 export function deleteTask(task) {
   calendarApi.getEventById(task.id).remove()
+}
+
+export function reminderDone(taskId, reminderId) {
+  let reminders = calendarApi.getEventById(Number.parseInt(taskId)).extendedProps.reminders
+  reminders.find(v => v.id == Number.parseInt(reminderId)).done = true
+  calendarApi.getEventById(Number.parseInt(taskId)).setExtendedProp('reminders', reminders)
 }

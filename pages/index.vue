@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex flex-column overflow-hidden" style="height: 100vh;">
-    <v-btn @click="notify('a', 'b', new Date())">Notify</v-btn>
+    <v-btn @click="notify({ title: 'This is title', body: 'This is text of notification' }, new Date(), {taskId:25,reminderId:1})">Notify</v-btn>
     <Header />
 
     <div class="flex-grow-1">
@@ -41,7 +41,7 @@ useHead({
 
 // calendar
 import FullCalendar from '@fullcalendar/vue3'
-import { calendarApi, setCalendarApi, calendarOptions, getTaskId, getTasks, initCalendar } from '@/scripts/calendar'
+import { calendarApi, setCalendarApi, calendarOptions, getTaskId, getTasks, initCalendar, reminderDone } from '@/scripts/calendar'
 // header
 import Header from '@/components/Header'
 // dialogs
@@ -66,10 +66,10 @@ const snackbar = ref({
 onMounted(() => {
   // init
   setCalendarApi(calendar.value.getApi())
-  initCalendar()
   getTaskId()
   getTasks()
   getLocale()
+  initCalendar()
 
   onMessage($messaging, payload => {
     console.log('Message on client: ', payload)
@@ -78,6 +78,13 @@ onMounted(() => {
     snackbar.value.open = true
     snackbar.value.title = payload.notification.title
     snackbar.value.text = payload.notification.body
+
+    reminderDone(payload.data.taskId, payload.data.reminderId)
   })
+
+  const idsBroadcast = new BroadcastChannel('ids')
+  idsBroadcast.onmessage = (event) => {
+    reminderDone(event.data.taskId, event.data.reminderId)
+  }
 })
 </script>

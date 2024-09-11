@@ -14,6 +14,10 @@ firebase.initializeApp(firebaseConfig)
 
 const messaging = firebase.messaging()
 
+const idsBroadcast = new BroadcastChannel('ids')
+
 messaging.onBackgroundMessage(payload => {
   console.log('[firebase-messaging-sw.js] Received background message: ', payload)
+
+  idsBroadcast.postMessage( {taskId: payload.data.taskId, reminderId: payload.data.reminderId} )
 })

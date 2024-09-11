@@ -407,6 +407,7 @@ watch(() => formValues.value.endTime, (newV, oldV) => {
 // funcs
 import { addTask, editTask } from '@/scripts/calendar'
 import { taskInfoOpen, infoTask } from '@/scripts/info'
+import { notify } from '~/scripts/notification'
 
 async function add(isActive) {
   const { valid } = await taskForm.value.validate()
@@ -416,7 +417,32 @@ async function add(isActive) {
       formValues.value.endTime = '01:00'
     }
 
+    for(const reminder of reminders.value) {
+      let time = new Date(formattedTask.value.start.getTime() - reminder.value)
+      let isFuture = time.getTime() >= Date.now()
+      reminder.done = !isFuture
+    }
+
     let taskId = addTask(formattedTask.value, reminders.value)
+
+    for(const reminder of reminders.value) {
+      let time = new Date(formattedTask.value.start.getTime() - reminder.value)
+      let isFuture = time.getTime() >= Date.now()
+
+      if(isFuture) {
+        notify(
+          {
+            title: formValues.value.title,
+            body: `${formattedTask.value.start} - ${formattedTask.value.end}`
+          },
+          time,
+          {
+            taskId: taskId,
+            reminderId: reminder.id,
+          },
+        )
+      }
+    }
 
     isActive.value = false
   }
