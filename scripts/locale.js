@@ -11,8 +11,9 @@ watch(appLocale, (n, o) => {
   changeLocale(n)
 })
 export function getLocale() {
-  if(localStorage.getItem('locale')) {
-    appLocale.value = localStorage.getItem('locale')
+  let locale = localStorage.getItem('locale')
+  if(locale) {
+    appLocale.value = locale
   }
   changeLocale(appLocale.value)
 }

@@ -24,13 +24,13 @@ const permissions = () => {
 
 export const notify = async (notification, time, ids) => {
   // permissions()
-  if(time.getTime() >= Date.now()) {
+  if(time.getTime()+200 >= Date.now()) {
     const { $token } = useNuxtApp()
 
     fetch('http://localhost:3001/send-notification', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: $token, notification: notification, time: time, ids: ids, })
+      body: JSON.stringify({ token: $token, notification: notification, time: time, ids: ids ? ids : null, })
     })
   } else {
     console.log('Notification time is old')

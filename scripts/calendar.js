@@ -8,17 +8,14 @@ import { taskFormOpen, taskFormEditing, formValues } from './form'
 import { colors } from './settings'
 
 export let calendarApi
-export function setCalendarApi(api) {
-  calendarApi = api
-}
 
-export const taskId = ref()
+const taskId = ref()
 function createTaskId() {
   taskId.value++
   localStorage.setItem('id', JSON.stringify(taskId.value))
   return String(taskId.value)
 }
-export function getTaskId() {
+function getTaskId() {
   taskId.value = JSON.parse(localStorage.getItem('id'))
 }
 
@@ -26,7 +23,43 @@ export const calendarTasks = ref([])
 watch(calendarTasks, async (n, o) => {
   localStorage.setItem('calendarTasks', JSON.stringify(n))
 })
+function getTasks() {
+  let tasks = JSON.parse(localStorage.getItem('calendarTasks'))
+  if(tasks) {
+    for(let i = 0; i < tasks.length; i++) {
+      calendarApi.addEvent(tasks[i])
+    }
+  }
+}
 
+function checkDones() {
+  for(const event of calendarApi.getEvents()) {
+    for(const reminder of event.extendedProps.reminders) {
+      let timeOld = (event.start.getTime() - reminder.value) <= new Date().getTime()
+      if(timeOld) {
+        reminder.done = true
+      }
+    }
+  }
+}
+
+// calendar init
+export function initCalendar(api) {
+  calendarApi = api
+  getTaskId()
+  getTasks()
+  checkDones()
+
+  // title
+  document.getElementById('today-title').appendChild(document.querySelector('.fc-toolbar-title'))
+  document.querySelector('.fc-toolbar').style.display = 'none'
+
+  // size & view
+  calendarApi.updateSize()
+  calendarApi.changeView(calendarViewMode.value)
+}
+
+// options
 export const calendarOptions = {
   plugins: [ dayGridPlugin, timeGridPlugin, interactionPlugin ],
   initialView: 'dayGridMonth',
@@ -148,33 +181,6 @@ watch(calendarViewMode, async (n, o) => {
 })
 
 // funcs
-export function initCalendar() {
-  document.getElementById('today-title').appendChild(document.querySelector('.fc-toolbar-title'))
-  document.querySelector('.fc-toolbar').style.display = 'none'
-
-  calendarApi.updateSize()
-  calendarApi.changeView(calendarViewMode.value)
-
-  // check all dones
-  for(const event of calendarApi.getEvents()) {
-    for(const reminder of event.extendedProps.reminders) {
-      let timeOld = (event.start.getTime() - reminder.value) <= new Date().getTime()
-      if(timeOld) {
-        reminder.done = true
-      }
-    }
-  }
-}
-
-export function getTasks() {
-  let tasks = JSON.parse(localStorage.getItem('calendarTasks'))
-  if(tasks) {
-    for(let i = 0; i < tasks.length; i++) {
-      calendarApi.addEvent(tasks[i])
-    }
-  }
-}
-
 export function addTask(task, reminders) {
   let newTask = task
   newTask.id = createTaskId()
@@ -183,7 +189,7 @@ export function addTask(task, reminders) {
 
   calendarApi.addEvent(newTask)
 
-  return newTask.id
+  return Number.parseInt(newTask.id)
 }
 
 export function editTask(id, task) {
