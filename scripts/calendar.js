@@ -84,9 +84,9 @@ export const calendarOptions = {
   locales: allLocales,
   locale: appLocale.value,
   // mobile
-  longPressDelay: 250,
-  eventLongPressDelay: 250,
-  selectLongPressDelay: 250,
+  longPressDelay: 500,
+  eventLongPressDelay: 500,
+  selectLongPressDelay: 500,
   // header
   headerToolbar: {
     start: '',
@@ -119,6 +119,12 @@ export const calendarOptions = {
       calendarApi.getEventById(info.event.id).setEnd(new Date(new Date(info.event.start).getTime()+ 60*60*1000))
     }
   },
+  // event change
+  eventResizableFromStart: true,
+  eventChange: function(info) {
+    const startChanged = info.event.start.getTime() != info.oldEvent.start.getTime()
+    console.log(startChanged)
+  }
 }
 
 // calendar funcs

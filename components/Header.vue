@@ -70,8 +70,8 @@
     
     <!-- btns -->
     <v-toolbar-items>
-      <v-btn @click="notify({ title: 'This is title', body: 'This is text of notification' }, new Date(Date.now() + 10000), { taskId: 1, reminderId: 1 })">Notify</v-btn>
-      <!-- <v-btn @click="notify({ title: 'This is title', body: 'This is text of notification' }, new Date(Date.now() + 10000), { taskId: 1, reminderId: 1 })">Notify</v-btn> -->
+      <v-btn @click="notify({ title: 'This is title', body: 'This is text of notification' }, new Date(Date.now() + 10 * 1000), { taskId: 1, reminderId: 1 })">Notify</v-btn>
+      <v-btn @click="cancelNotification(1, 1)">Cancel</v-btn>
       <v-btn
         elevation="0"
         prepend-icon="mdi-plus"
@@ -89,7 +89,7 @@ import { calendarApi, calendarViewMode, calendarViewModes } from '@/scripts/cale
 import { taskFormEditing, taskFormOpen, formValues } from '@/scripts/form'
 import { appLocale } from '@/scripts/locale'
 import { colors } from '@/scripts/settings'
-import { notify } from '~/scripts/notification'
+import { cancelNotification, notify } from '~/scripts/notification'
 
 const titleDateOpen = ref(false)
 const titleDate = ref(null)

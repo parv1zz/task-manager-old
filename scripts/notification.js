@@ -36,3 +36,11 @@ export const notify = async (notification, time, ids) => {
     console.log('Notification time is old')
   }
 }
+
+export const cancelNotification = async (taskId, remidnerId) => {
+  fetch('http://localhost:3001/cancel-notification', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ taskId: taskId, remidnerId: remidnerId })
+  })
+}
