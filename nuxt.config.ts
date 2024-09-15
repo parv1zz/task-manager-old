@@ -1,45 +1,34 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
-import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
-
 export default defineNuxtConfig({
-  css: ['~/assets/scss/main.scss'],
+  ssr: true,
+  compatibilityDate: '2024-09-08',
   devtools: { enabled: true },
-  build: {
-    transpile: ['vuetify'],
-  },
+  css: ['~/assets/scss/main.scss'],
   modules: [
     '@nuxtjs/i18n',
-    (_options, nuxt) => {
-      nuxt.hooks.hook('vite:extendConfig', (config) => {
-        // @ts-expect-error
-        config.plugins.push(vuetify({ autoImport: true }))
-      })
-    },
+    'vuetify-nuxt-module',
+    '@samk-dev/nuxt-vcalendar',
+    '@nuxtjs/tailwindcss'
   ],
-  vite: {
-    vue: {
-      template: {
-        transformAssetUrls,
-      },
-    },
+  vuetify: {
+    moduleOptions: {},
+    vuetifyOptions: './vuetify.config.ts'
   },
   i18n: {
     locales: [
       {
         code: 'en',
         name: 'English',
-        file: './locales/en.json',
       },
       {
         code: 'ru',
-        name: 'Russian',
-        file: './locales/ru.json',
+        name: 'Русский',
       },
     ],
-    lazy: false,
     defaultLocale: 'en',
     strategy: 'prefix_except_default',
     vueI18n: './i18n.config.ts',
   },
-  compatibilityDate: '2024-09-08',
+  vcalendar: {
+    prefix: 'vc'
+  }
 })

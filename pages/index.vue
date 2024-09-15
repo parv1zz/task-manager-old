@@ -1,12 +1,12 @@
 <template>
-  <div class="d-flex flex-column overflow-hidden" style="height: 100vh;">
+  <div class="flex flex-col overflow-hidden h-screen">
     <Header />
 
-    <div class="flex-grow-1">
+    <div class="flex-grow">
       <FullCalendar
         :options="calendarOptions"
         ref="calendar"
-        class="w-100"
+        class="w-full"
       >
       </FullCalendar>
     </div>
@@ -53,8 +53,8 @@ const calendar = ref()
 
 // messaging
 import { onMessage } from 'firebase/messaging'
-const { $messaging, $token } = useNuxtApp()
-import { notify } from '~/scripts/notification'
+import { sendToken } from '~/scripts/notification';
+const { $messaging } = useNuxtApp()
 
 const snackbar = ref({
   open: false,
@@ -63,6 +63,7 @@ const snackbar = ref({
 })
 
 onMounted(() => {
+  sendToken()
   // init
   initCalendar(calendar.value.getApi())
   getLocale()

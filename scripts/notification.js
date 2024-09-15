@@ -25,22 +25,30 @@ const permissions = () => {
 export const notify = async (notification, time, ids) => {
   // permissions()
   if(time.getTime()+200 >= Date.now()) {
-    const { $token } = useNuxtApp()
-
     fetch('http://localhost:3001/send-notification', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: $token, notification: notification, time: time, ids: ids ? ids : null, })
+      body: JSON.stringify({ notification: notification, time: time, ids: ids ? ids : null, })
     })
   } else {
     console.log('Notification time is old')
   }
 }
 
-export const cancelNotification = async (taskId, remidnerId) => {
-  fetch('http://localhost:3001/cancel-notification', {
+export const refreshNotifications = async(taskId, notifications) => {
+  fetch('http://localhost:3001/refresh-notifications', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ taskId: taskId, remidnerId: remidnerId })
+    body: JSON.stringify({ taskId: taskId, notifications: notifications })
+  })
+}
+
+export const sendToken = async () => {
+  const { $token } = useNuxtApp()
+
+  fetch('http://localhost:3001/send-token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: $token })
   })
 }

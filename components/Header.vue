@@ -26,7 +26,7 @@
     <div>
       <v-hover>
         <template v-slot:default="{ isHovering, props }">
-          <div v-bind="props" class="d-flex align-center cursor-pointer px-2 rounded" :class="isHovering ? 'bg-grey-lighten-2' : ''">
+          <div v-bind="props" class="flex items-center cursor-pointer px-2 rounded" :class="isHovering ? 'bg-grey-lighten-2' : ''">
             <div id="today-title"></div>
             <v-icon>mdi-menu-down</v-icon>
             <v-menu activator="parent" :close-on-content-click="false" v-model="titleDateOpen">
@@ -70,16 +70,14 @@
     
     <!-- btns -->
     <v-toolbar-items>
-      <v-btn @click="notify({ title: 'This is title', body: 'This is text of notification' }, new Date(Date.now() + 10 * 1000), { taskId: 1, reminderId: 1 })">Notify</v-btn>
-      <v-btn @click="cancelNotification(1, 1)">Cancel</v-btn>
       <v-btn
         elevation="0"
         prepend-icon="mdi-plus"
         @click="addTaskClick"
         color="primary"
       >{{ $t('TaskForm.addTask') }}</v-btn>
-      <Settings />
     </v-toolbar-items>
+    <Settings />
   </v-toolbar>
 </template>
 
@@ -89,7 +87,6 @@ import { calendarApi, calendarViewMode, calendarViewModes } from '@/scripts/cale
 import { taskFormEditing, taskFormOpen, formValues } from '@/scripts/form'
 import { appLocale } from '@/scripts/locale'
 import { colors } from '@/scripts/settings'
-import { cancelNotification, notify } from '~/scripts/notification'
 
 const titleDateOpen = ref(false)
 const titleDate = ref(null)

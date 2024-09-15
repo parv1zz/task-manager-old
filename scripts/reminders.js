@@ -1,4 +1,4 @@
-export const allReminders = ref([
+export const allReminders = [
   {
     title: '5m',
     value: 5*60*1000,
@@ -27,4 +27,4 @@ export const allReminders = ref([
     title: '1d',
     value: 24*60*60*1000,
   },
-])
+]

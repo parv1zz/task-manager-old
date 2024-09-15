@@ -33,7 +33,7 @@
         <v-list-subheader>{{ $t('settings.language-and-region') }}</v-list-subheader>
 
         <v-list-item>
-          <div class="d-flex">
+          <div class="flex">
             <div class="item">
               <v-list-item-title>{{ $t('settings.language') }}</v-list-item-title>
               <v-list-item-subtitle>{{ $t('settings.app-language') }}</v-list-item-subtitle>
@@ -63,7 +63,7 @@
           </div>
         </v-list-item>
         <v-list-item>
-          <div class="d-flex">
+          <div class="flex">
             <div class="item">
               <v-list-item-title>Date format</v-list-item-title>
               <v-list-item-subtitle>Set date format</v-list-item-subtitle>
@@ -78,7 +78,7 @@
           </div>
         </v-list-item>
         <v-list-item>
-          <div class="d-flex">
+          <div class="flex">
             <div class="item">
               <v-list-item-title>Time format</v-list-item-title>
               <v-list-item-subtitle>24hr or 12hr</v-list-item-subtitle>
@@ -93,7 +93,7 @@
           </div>
         </v-list-item>
         <v-list-item>
-          <div class="d-flex">
+          <div class="flex">
             <div class="item">
               <v-list-item-title>First day</v-list-item-title>
               <v-list-item-subtitle>Week first day</v-list-item-subtitle>
@@ -108,7 +108,7 @@
           </div>
         </v-list-item>
         <v-list-item>
-          <div class="d-flex">
+          <div class="flex">
             <div class="item">
               <v-list-item-title>Time zone</v-list-item-title>
               <v-list-item-subtitle>Set timezone</v-list-item-subtitle>
@@ -126,7 +126,7 @@
         <v-divider></v-divider>
         <v-list-subheader>{{ $t('settings.import-and-export') }}</v-list-subheader>
         <v-list-item>
-          <div class="d-flex">
+          <div class="flex">
             <div class="item">
               <v-list-item-title>{{ $t('settings.import') }}</v-list-item-title>
               <v-list-item-subtitle>{{ $t('settings.import-from-json-file') }}</v-list-item-subtitle>
@@ -141,7 +141,7 @@
           </div>
         </v-list-item>
         <v-list-item>
-          <div class="d-flex">
+          <div class="flex">
             <div class="item">
               <v-list-item-title>{{ $t('settings.export') }}</v-list-item-title>
               <v-list-item-subtitle>{{ $t('settings.export-to-json-file') }}</v-list-item-subtitle>
@@ -159,7 +159,7 @@
         <v-divider></v-divider>
         <v-list-subheader>{{ $t('settings.calendar') }}</v-list-subheader>
         <v-list-item>
-          <div class="d-flex">
+          <div class="flex">
             <div class="item">
               <v-list-item-title>ID</v-list-item-title>
               <v-list-item-subtitle>Connect other devices</v-list-item-subtitle>
@@ -179,7 +179,7 @@
           </div>
         </v-list-item>
         <v-list-item>
-          <div class="d-flex">
+          <div class="flex">
             <div class="item">
               <v-list-item-title>Connect</v-list-item-title>
               <v-list-item-subtitle>Connect to other device</v-list-item-subtitle>
@@ -204,7 +204,7 @@ import { locales, appLocale } from '@/scripts/locale'
 const dialog = ref(false)
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .item {
   width: 215px;
   margin-right: 24px;

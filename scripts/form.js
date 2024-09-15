@@ -1,5 +1,9 @@
+import { changeDateFormat } from "./dates"
+
 export const taskFormOpen = ref(false)
 export const taskFormEditing = ref(false)
+export const isEditingFromForm = ref(false)
+export const taskFormEdited = ref(false) 
 
 export const formValues = ref({
   allDay: false,
@@ -11,7 +15,6 @@ export const formValues = ref({
   color: '',
 })
 
-import { changeDateFormat } from "./dates"
 
 export const formattedTask = computed({
   get() {
@@ -24,3 +27,8 @@ export const formattedTask = computed({
     }
   }
 })
+
+export const repeats = ['No repeat', 'Daily', 'Weekly', 'Annualy',]
+
+export const reminderId = ref(0)
+export const reminders = ref([])

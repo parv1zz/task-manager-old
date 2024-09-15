@@ -4,19 +4,20 @@ import interactionPlugin from '@fullcalendar/interaction'
 import allLocales from '@fullcalendar/core/locales-all'
 import { appLocale } from './locale'
 import { taskInfoOpen, infoTask } from './info'
-import { taskFormOpen, taskFormEditing, formValues } from './form'
+import { taskFormOpen, taskFormEditing, formValues, isEditingFromForm, taskFormEdited } from './form'
 import { colors } from './settings'
+import { refreshNotifications } from './notification'
 
 export let calendarApi
 
-const taskId = ref()
+const taskId = ref(0)
 function createTaskId() {
   taskId.value++
   localStorage.setItem('id', JSON.stringify(taskId.value))
   return String(taskId.value)
 }
 function getTaskId() {
-  taskId.value = JSON.parse(localStorage.getItem('id'))
+  taskId.value = Number.parseInt(JSON.parse(localStorage.getItem('id')))
 }
 
 export const calendarTasks = ref([])
@@ -32,12 +33,17 @@ function getTasks() {
   }
 }
 
+// check dones on mount
 function checkDones() {
-  for(const event of calendarApi.getEvents()) {
-    for(const reminder of event.extendedProps.reminders) {
-      let timeOld = (event.start.getTime() - reminder.value) <= new Date().getTime()
-      if(timeOld) {
-        reminder.done = true
+  const events = calendarApi.getEvents()
+
+  for(const event of events) {
+    if(event.extendedProps.reminders) {
+      for(const reminder of event.extendedProps.reminders) {
+        let timeOld = (event.start.getTime() - reminder.value) < new Date().getTime()
+        if(timeOld) {
+          reminder.done = true
+        }
       }
     }
   }
@@ -121,15 +127,46 @@ export const calendarOptions = {
   },
   // event change
   eventResizableFromStart: true,
-  eventChange: function(info) {
-    const startChanged = info.event.start.getTime() != info.oldEvent.start.getTime()
-    console.log(startChanged)
-  }
+  eventChange: updateReminder,
 }
 
 // calendar funcs
 function updateTasks(events) {
   calendarTasks.value = events
+}
+
+function updateReminder(info) {
+  const startChanged = info.event.start.getTime() != info.oldEvent.start.getTime()
+
+  const reminders = info.event.extendedProps.reminders
+
+  if(reminders.length > 0 && startChanged && !isEditingFromForm.value) {
+    const notifications = []
+
+    for(const reminder of reminders) {
+      // done
+      let time = new Date(info.event.start.getTime() - reminder.value)
+      let isFuture = time.getTime() >= Date.now()
+      reminder.done = !isFuture
+
+      // resend
+      if(isFuture) {
+        notifications.push({
+          notification: {
+            title: info.event.title,
+            body: `${info.event.start} - ${info.event.end}`,
+          },
+          time: time,
+          ids: {
+            taskId: Number.parseInt(info.event.id),
+            reminderId: reminder.id,
+          }
+        })
+      }
+    }
+
+    refreshNotifications(info.event.id, notifications)
+  }
 }
 
 function showTaskInfo(info) {
@@ -198,17 +235,51 @@ export function addTask(task, reminders) {
   return Number.parseInt(newTask.id)
 }
 
-export function editTask(id, task) {
-  let calendarEvent = calendarApi.getEventById(id)
-  calendarEvent.setProp('title', task.title)
-  calendarEvent.setProp('color', task.color)
-  calendarEvent.setAllDay(task.allDay)
 
+const objectsEqual = (o1, o2) => {
+  return typeof o1 === 'object' && Object.keys(o1).length > 0 
+      ? Object.keys(o1).length === Object.keys(o2).length 
+          && Object.keys(o1).every(p => objectsEqual(o1[p], o2[p]))
+      : o1 === o2;
+}
+
+const arraysEqual = (a1, a2) => a1.length === a2.length && a1.every((o, idx) => objectsEqual(o, a2[idx]));
+
+export function editTask(task, reminders) {
+  let calendarEvent = calendarApi.getEventById(infoTask.value.id)
+  if(infoTask.value.title != task.title) {
+    calendarEvent.setProp('title', task.title)
+    taskFormEdited.value = true
+  }
+  if(infoTask.value.backgroundColor != task.color) calendarEvent.setProp('color', task.color)
+  if(infoTask.value.allDay != task.allDay) {
+    calendarEvent.setAllDay(task.allDay)
+    taskFormEdited.value = true
+  }
+  
   if(task.allDay) {
-    calendarEvent.setStart(task.start, { maintainDuration: true })
+    if(infoTask.value.start.getTime() != task.start.getTime()) {
+      calendarEvent.setStart(task.start, { maintainDuration: true })
+      taskFormEdited.value = true
+    }
   } else {
-    calendarEvent.setStart(task.start)
-    calendarEvent.setEnd(task.end)
+    if(infoTask.value.start.getTime() != task.start.getTime()) {
+      calendarEvent.setStart(task.start)
+      taskFormEdited.value = true
+    }
+    if(infoTask.value.end) {
+      if(infoTask.value.end.getTime() != task.end.getTime()) {
+        calendarEvent.setEnd(task.end)
+        taskFormEdited.value = true
+      }
+    } else {
+      calendarEvent.setEnd(task.end)
+      taskFormEdited.value = true
+    }
+  }
+  if(!arraysEqual(infoTask.value.extendedProps.reminders, reminders)) {
+    calendarEvent.setExtendedProp('reminders', reminders)
+    taskFormEdited.value = true
   }
 }
 
