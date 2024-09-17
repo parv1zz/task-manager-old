@@ -6,7 +6,6 @@ export default defineNuxtConfig({
   modules: [
     '@nuxtjs/i18n',
     'vuetify-nuxt-module',
-    '@samk-dev/nuxt-vcalendar',
     '@nuxtjs/tailwindcss'
   ],
   vuetify: {
@@ -28,7 +27,4 @@ export default defineNuxtConfig({
     strategy: 'prefix_except_default',
     vueI18n: './i18n.config.ts',
   },
-  vcalendar: {
-    prefix: 'vc'
-  }
 })

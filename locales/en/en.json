@@ -21,7 +21,7 @@
     "start": "Start",
     "end": "End",
     "time": "Time",
-    "date": "Date",
+    "date": "Date (can select multiple)",
     "selectTime": "Select time",
     "allDay": "All day",
     "add": "Add",

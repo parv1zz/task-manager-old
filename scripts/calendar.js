@@ -7,9 +7,14 @@ import { taskInfoOpen, infoTask } from './info'
 import { taskFormOpen, taskFormEditing, formValues, isEditingFromForm, taskFormEdited } from './form'
 import { colors } from './settings'
 import { refreshNotifications } from './notification'
+import { checkDays } from './dates'
+import { snackbars, snackbarTimeout } from './snackbars'
+import { arraysEqual } from './reminders'
 
+// api
 export let calendarApi
 
+// id
 const taskId = ref(0)
 function createTaskId() {
   taskId.value++
@@ -17,9 +22,11 @@ function createTaskId() {
   return String(taskId.value)
 }
 function getTaskId() {
-  taskId.value = Number.parseInt(JSON.parse(localStorage.getItem('id')))
+  const id = JSON.parse(localStorage.getItem('id'))
+  if(id) taskId.value = Number.parseInt(id)
 }
 
+// tasks
 export const calendarTasks = ref([])
 watch(calendarTasks, async (n, o) => {
   localStorage.setItem('calendarTasks', JSON.stringify(n))
@@ -65,18 +72,22 @@ export function initCalendar(api) {
   calendarApi.changeView(calendarViewMode.value)
 }
 
+//* ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // options
 export const calendarOptions = {
   plugins: [ dayGridPlugin, timeGridPlugin, interactionPlugin ],
   initialView: 'dayGridMonth',
   events: calendarTasks.value,
+  timeZone: 'local',
 
   // date settings
+  forceEventDuration: true,
   nowIndicator: true,
   dayMaxEvents: true,
   firstDay: appLocale.value == 'en' ? 0 : 1,
   weekText: appLocale.value == 'en' ? 'W' : 'H',
   snapDuration: '00:15:00',
+  scrollTime: '00:00:00',
   fixedWeekCount: false,
   weekNumbers: true,
   views: {
@@ -99,7 +110,6 @@ export const calendarOptions = {
     center: 'title',
     end: '',
   },
-
   // editable
   editable: true,
   eventsSet: updateTasks,
@@ -119,28 +129,32 @@ export const calendarOptions = {
   selectable: true,
   unselectAuto: false,
   select: selectTask,
-  // drop issue
-  eventDrop: function(info) {
-    if(!info.event.allDay && !info.event.end) {
-      calendarApi.getEventById(info.event.id).setEnd(new Date(new Date(info.event.start).getTime()+ 60*60*1000))
-    }
-  },
   // event change
   eventResizableFromStart: true,
   eventChange: updateReminder,
 }
+//* ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // calendar funcs
 function updateTasks(events) {
   calendarTasks.value = events
 }
 
+// update reminders on start change
 function updateReminder(info) {
+  // snackbar
+  snackbars.value[1].open = false
+  snackbars.value[1].open = true
+  snackbars.value[1].title = info.event.title
+  snackbars.value[1].text = 'saved'
+
+  // reminders
   const startChanged = info.event.start.getTime() != info.oldEvent.start.getTime()
-
+  const endChanged = info.event.end.getTime() != info.oldEvent.end.getTime()
+  
   const reminders = info.event.extendedProps.reminders
-
-  if(reminders.length > 0 && startChanged && !isEditingFromForm.value) {
+  
+  if(reminders.length > 0 && !isEditingFromForm.value && (startChanged || endChanged)) {
     const notifications = []
 
     for(const reminder of reminders) {
@@ -154,7 +168,7 @@ function updateReminder(info) {
         notifications.push({
           notification: {
             title: info.event.title,
-            body: `${info.event.start} - ${info.event.end}`,
+            body: notificationBody(info.event),
           },
           time: time,
           ids: {
@@ -166,38 +180,52 @@ function updateReminder(info) {
     }
 
     refreshNotifications(info.event.id, notifications)
+
+    if(startChanged) {
+      // snackbar
+      setTimeout(() => {
+        snackbars.value[4].open = false
+        snackbars.value[4].open = true
+        snackbars.value[4].title = info.event.title
+      }, snackbarTimeout.value)
+    }
   }
 }
 
+// task click
 function showTaskInfo(info) {
-  infoTask.value = info.event
+  // allday decrease end by 1
+  let event = {
+    id: info.event.id,
+    allDay: info.event.allDay,
+    title: info.event.title,
+    backgroundColor: info.event.backgroundColor,
+    start: info.event.start,
+    end: info.event.end,
+    extendedProps: info.event.extendedProps,
+  }
+  // allday issue 
+  if(info.event.allDay) {
+    event.end = new Date(info.event.end.getTime()-1*24*3600*1000)
+  }
+
+  infoTask.value = event
   taskInfoOpen.value = true
 }
 
+// select task
 function selectTask(info) {
   taskFormEditing.value = false
 
   formValues.value.color = colors[2].value
-  formValues.value.start = new Date(info.start).toLocaleDateString(appLocale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
-  formValues.value.startTime = new Date(info.start).toLocaleString('ru', {hour: '2-digit', minute: '2-digit'})
-  formValues.value.end = new Date(info.end.getTime()-1*24*60*60*1000).toLocaleDateString(appLocale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
-  formValues.value.endTime = ''
+  formValues.value.start = new Date(info.start).toLocaleDateString(appLocale.value, {year: 'numeric', month: 'numeric', day: 'numeric'})
+  formValues.value.end = new Date(info.end.getTime()-1).toLocaleDateString(appLocale.value, {year: 'numeric', month: 'numeric', day: 'numeric'})
   formValues.value.allDay = info.allDay
 
   if(!info.allDay && calendarApi.view.type !== 'dayGridMonth'){
-    formValues.value.end = new Date(info.end).toLocaleDateString(appLocale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
-    formValues.value.endTime = new Date(info.end).toLocaleString('ru', {hour: '2-digit', minute: '2-digit'})
-  }
-  if(info.allDay) {
-    formValues.value.startTime = ''
-  }
-  if(calendarApi.view.type == 'dayGridMonth') {
-    formValues.value.allDay = false
-    formValues.value.startTime = ''
-
-    if(info.start.getTime() != info.end.getTime()-1*24*60*60*1000) {
-      formValues.value.end = new Date(info.end.getTime()-1*24*60*60*1000).toLocaleDateString(appLocale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
-    }
+    formValues.value.end = new Date(info.end).toLocaleDateString(appLocale.value, {year: 'numeric', month: 'numeric', day: 'numeric'})
+    formValues.value.startTime = new Date(info.start).toLocaleString(appLocale.value, {hour: 'numeric', minute: 'numeric'})
+    formValues.value.endTime = new Date(info.end).toLocaleString(appLocale.value, {hour: 'numeric', minute: 'numeric'})
   }
 
   taskFormOpen.value = true
@@ -235,16 +263,6 @@ export function addTask(task, reminders) {
   return Number.parseInt(newTask.id)
 }
 
-
-const objectsEqual = (o1, o2) => {
-  return typeof o1 === 'object' && Object.keys(o1).length > 0 
-      ? Object.keys(o1).length === Object.keys(o2).length 
-          && Object.keys(o1).every(p => objectsEqual(o1[p], o2[p]))
-      : o1 === o2;
-}
-
-const arraysEqual = (a1, a2) => a1.length === a2.length && a1.every((o, idx) => objectsEqual(o, a2[idx]));
-
 export function editTask(task, reminders) {
   let calendarEvent = calendarApi.getEventById(infoTask.value.id)
   if(infoTask.value.title != task.title) {
@@ -257,22 +275,18 @@ export function editTask(task, reminders) {
     taskFormEdited.value = true
   }
   
+  if(infoTask.value.start.getTime() != task.start.getTime()) {
+    calendarEvent.setStart(task.start)
+    taskFormEdited.value = true
+  }
+  // allday issue
   if(task.allDay) {
-    if(infoTask.value.start.getTime() != task.start.getTime()) {
-      calendarEvent.setStart(task.start, { maintainDuration: true })
+    if(infoTask.value.end.getTime()+1*24*3600*1000 != task.end.getTime()) {
+      calendarEvent.setEnd(task.end)
       taskFormEdited.value = true
     }
   } else {
-    if(infoTask.value.start.getTime() != task.start.getTime()) {
-      calendarEvent.setStart(task.start)
-      taskFormEdited.value = true
-    }
-    if(infoTask.value.end) {
-      if(infoTask.value.end.getTime() != task.end.getTime()) {
-        calendarEvent.setEnd(task.end)
-        taskFormEdited.value = true
-      }
-    } else {
+    if(infoTask.value.end.getTime() != task.end.getTime()) {
       calendarEvent.setEnd(task.end)
       taskFormEdited.value = true
     }
@@ -291,4 +305,20 @@ export function reminderDone(taskId, reminderId) {
   let reminders = calendarApi.getEventById(Number.parseInt(taskId)).extendedProps.reminders
   reminders.find(v => v.id == Number.parseInt(reminderId)).done = true
   calendarApi.getEventById(Number.parseInt(taskId)).setExtendedProp('reminders', reminders)
+}
+
+export function notificationBody(task) {
+  let body
+  let end = new Date(task.end.getTime() - 1*24*3600*1000)
+  // all day
+  if(task.allDay) {
+    body = `${task.start.toLocaleString(appLocale.value, { year: 'numeric', month: 'numeric', day: 'numeric' })} - ${end.toLocaleString(appLocale.value, { year: 'numeric', month: 'numeric', day: 'numeric' })}`
+  } else {
+    if(checkDays(task.start, task.end)) { // one day
+      body = `${task.start.toLocaleString(appLocale.value, { year: 'numeric', month: 'numeric', day: 'numeric' })}, ${task.start.toLocaleString(appLocale.value, { hour: 'numeric', minute: 'numeric', hour12: appLocale.value == 'en' })} - ${task.end.toLocaleString(appLocale.value, { hour: 'numeric', minute: 'numeric', hour12: appLocale.value == 'en' })}`
+    } else { // many days
+      body = `${task.start.toLocaleString(appLocale.value, { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: appLocale.value == 'en' })} - ${task.end.toLocaleString(appLocale.value, { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: appLocale.value == 'en' })}`
+    }
+  }
+  return body
 }

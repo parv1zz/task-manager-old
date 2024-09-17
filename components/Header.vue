@@ -101,7 +101,8 @@ function addTaskClick() {
 
   let date = new Date()
   formValues.value.color = colors[2].value
-  formValues.value.start = date.toLocaleDateString(appLocale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
-  formValues.value.end = date.toLocaleDateString(appLocale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
+  formValues.value.start = date.toLocaleDateString(appLocale.value, {year: 'numeric', month: 'numeric', day: 'numeric'})
+  formValues.value.end = date.toLocaleDateString(appLocale.value, {year: 'numeric', month: 'numeric', day: 'numeric'})
+  formValues.value.allDay = true
 }
 </script>

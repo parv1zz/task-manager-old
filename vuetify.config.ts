@@ -14,5 +14,5 @@ export default defineVuetifyConfiguration({
   icons: {
     defaultSet: 'mdi',
   },
-  labComponents: ['VTimePicker']
+  labComponents: ['VNumberInput']
 })

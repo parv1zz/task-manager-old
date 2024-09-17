@@ -62,68 +62,9 @@
             </v-select>
           </div>
         </v-list-item>
-        <v-list-item>
-          <div class="flex">
-            <div class="item">
-              <v-list-item-title>Date format</v-list-item-title>
-              <v-list-item-subtitle>Set date format</v-list-item-subtitle>
-            </div>
-            <v-select
-              max-width="150"
-              :items="['09/12/2023', '12.09.2023']"
-              density="compact"
-              variant="outlined"
-              hide-details
-            ></v-select>
-          </div>
-        </v-list-item>
-        <v-list-item>
-          <div class="flex">
-            <div class="item">
-              <v-list-item-title>Time format</v-list-item-title>
-              <v-list-item-subtitle>24hr or 12hr</v-list-item-subtitle>
-            </div>
-            <v-select
-              max-width="150"
-              :items="['1:00 PM', '13:00']"
-              density="compact"
-              variant="outlined"
-              hide-details
-            ></v-select>
-          </div>
-        </v-list-item>
-        <v-list-item>
-          <div class="flex">
-            <div class="item">
-              <v-list-item-title>First day</v-list-item-title>
-              <v-list-item-subtitle>Week first day</v-list-item-subtitle>
-            </div>
-            <v-select
-              max-width="150"
-              :items="['Monday', 'Sunday']"
-              density="compact"
-              variant="outlined"
-              hide-details
-            ></v-select>
-          </div>
-        </v-list-item>
-        <v-list-item>
-          <div class="flex">
-            <div class="item">
-              <v-list-item-title>Time zone</v-list-item-title>
-              <v-list-item-subtitle>Set timezone</v-list-item-subtitle>
-            </div>
-            <v-select
-              max-width="150"
-              :items="['Local', 'GMT+05:00', 'GMT+00:00']"
-              density="compact"
-              variant="outlined"
-              hide-details
-            ></v-select>
-          </div>
-        </v-list-item>
         
-        <v-divider></v-divider>
+        <Divider />
+
         <v-list-subheader>{{ $t('settings.import-and-export') }}</v-list-subheader>
         <v-list-item>
           <div class="flex">
@@ -156,7 +97,8 @@
           </div>
         </v-list-item>
 
-        <v-divider></v-divider>
+        <Divider />
+
         <v-list-subheader>{{ $t('settings.calendar') }}</v-list-subheader>
         <v-list-item>
           <div class="flex">

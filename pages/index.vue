@@ -14,21 +14,7 @@
     <TaskForm />
     <TaskInfo />
 
-    <v-snackbar
-      v-model="snackbar.open"
-      timeout="5000"
-    >
-      <h3>{{ snackbar.title }}</h3>
-      <div>{{ snackbar.text }}</div>
-
-      <template v-slot:actions>
-        <v-btn
-          color="blue"
-          variant="text"
-          @click="snackbar.open = false"
-        >Close</v-btn>
-      </template>
-    </v-snackbar>
+    <Snackbars />
   </div>
 </template>
 
@@ -53,14 +39,9 @@ const calendar = ref()
 
 // messaging
 import { onMessage } from 'firebase/messaging'
-import { sendToken } from '~/scripts/notification';
+import { sendToken } from '~/scripts/notification'
+import { snackbars } from '~/scripts/snackbars'
 const { $messaging } = useNuxtApp()
-
-const snackbar = ref({
-  open: false,
-  title: '',
-  text: '',
-})
 
 onMounted(() => {
   sendToken()
@@ -72,9 +53,10 @@ onMounted(() => {
     console.log('Message on client: ', payload)
 
     // snackbar
-    snackbar.value.open = true
-    snackbar.value.title = payload.notification.title
-    snackbar.value.text = payload.notification.body
+    snackbars.value[0].open = false
+    snackbars.value[0].open = true
+    snackbars.value[0].title = payload.notification.title
+    snackbars.value[0].text = payload.notification.body
 
     if(payload.data) {
       reminderDone(payload.data.taskId, payload.data.reminderId)

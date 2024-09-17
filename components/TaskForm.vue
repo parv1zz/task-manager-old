@@ -3,52 +3,48 @@
     width="500"
     max-height="600"
     v-model="taskFormOpen"
-    @afterLeave="taskForm.reset(); calendarApi.unselect(); resetReminders(); isEditingFromForm = false; taskFormEdited = false"
+    @afterLeave="resetForm"
   >
     <template v-slot:default="{ isActive }">
       <v-card :title="!taskFormEditing ? $t('TaskForm.addTask') : $t('TaskForm.editTask')">
         <v-card-text class="pb-2">
           <!-- main -->
-          <v-form ref="taskForm">
+          <v-form ref="taskForm" validate-on="submit">
             <div class="flex gap-2">
-              <div class="flex-grow">
-                <v-text-field
-                  autofocus
-                  v-model="formValues.title"
-                  :rules="rules"
-                  :label="$t('TaskForm.title')"
-                  required
-                  persistent-placeholder
-                />
-              </div>
-              <div>
-                <v-select
-                  width="80"
-                  :items="colors"
-                  v-model="formValues.color"
-                >
-                  <template v-slot:item="{ props, item }">
-                    <v-list-item v-bind="props" :title="$t(`colors.${item.title}`)">
-                      <template v-slot:prepend>
-                        <v-list-item-action>
-                          <v-badge inline :color="item.value"></v-badge>
-                        </v-list-item-action>
-                      </template>
-                    </v-list-item>
-                  </template>
-                  <template v-slot:selection="{ item, index }">
-                    <v-badge class="ml-n1 mr-2" inline :color="item.value"></v-badge>
-                    <!-- {{ $te(item.title) ? $t(item.title) : item.title }} -->
-                  </template>
-                  <template v-slot:append-item>
-                    <v-divider></v-divider>
-                    <v-list-item ref="pickColorBtn" @click="" :title="$t('colors.pickColor')"></v-list-item>
-                  </template>
-                </v-select>
-              </div>
+              <v-text-field
+                autofocus
+                v-model="formValues.title"
+                :rules="rules"
+                :label="$t('TaskForm.title')"
+                required
+                persistent-placeholder
+              />
+              <v-select
+                max-width="80"
+                :items="colors"
+                v-model="formValues.color"
+              >
+                <template v-slot:item="{ props, item }">
+                  <v-list-item v-bind="props" :title="$t(`colors.${item.title}`)">
+                    <template v-slot:prepend>
+                      <v-list-item-action>
+                        <v-badge inline :color="item.value"></v-badge>
+                      </v-list-item-action>
+                    </template>
+                  </v-list-item>
+                </template>
+                <template v-slot:selection="{ item, index }">
+                  <v-badge class="ml-n1 mr-2" inline :color="item.value"></v-badge>
+                  <!-- {{ $te(item.title) ? $t(item.title) : item.title }} -->
+                </template>
+                <template v-slot:append-item>
+                  <Divider />
+                  <v-list-item ref="pickColorBtn" @click="" :title="$t('colors.pickColor')"></v-list-item>
+                </template>
+              </v-select>
             </div>
-            <div v-if="!formValues.allDay">
-              <div class="d-flex justify-space-between ga-2">
+            <div>
+              <div class="flex gap-2">
                 <!-- start -->
                 <v-text-field
                   v-model="formValues.start"
@@ -75,34 +71,30 @@
                 </v-text-field>
                 <!-- start time -->
                 <v-text-field
-                  max-width="35%"
+                  v-if="!formValues.allDay"
+                  max-width="26.1%"
                   v-model="formValues.startTime"
                   :rules="[...timeRules, checkStartTimeValue]"
                   :label="$t('TaskForm.time')"
                   :placeholder="getTimePattern"
                   persistent-placeholder
+                  @update:focused="formValues.filterValue = formValues.startTime"
                 >
-                  <v-icon id="pr-3" class="order-2 cursor-pointer" size="x-small" color="black">mdi-clock-outline</v-icon>
-                  <v-menu
-                    v-model="pickers.open[2]"
-                    activator="#pr-3"
-                    :close-on-content-click="false"
-                    transition="scale-transition"
-                  >
-                    <v-time-picker
-                      v-model="pickers.startTime"
-                      @update:model-value="formValues.startTime = new Date(`1/1/1 ${pickers.startTime}`).toLocaleString(appLocale, {hour: '2-digit', minute: '2-digit'})"
-                      @update:minute="pickers.open[2] = false"
-                      :format="appLocale == 'en' ? 'ampm' : '24hr'"
-                      :ampm-in-title="appLocale == 'en' ? true : false"
-                      color="primary"
-                      title="TaskForm.selectTime"
-                    ></v-time-picker>
-                    <!-- :max="checkDays(changeDateFormat(formValues.start), changeDateFormat(formValues.end)) ? (checkValidTime(pickers.endTime) ? pickers.endTime : null) : null" -->
+                  <v-menu activator="parent" height="auto" max-height="200" v-if="timesEnFiltered.length > 0">
+                    <v-list>
+                      <v-list-item
+                        v-for="(item, index) in (appLocale == 'en' ? timesEnFiltered : timesRuFiltered)"
+                        :key="index"
+                        :value="index"
+                        @click="formValues.startTime = item"
+                      >
+                        <v-list-item-title>{{ item }}</v-list-item-title>
+                      </v-list-item>
+                    </v-list>
                   </v-menu>
                 </v-text-field>
               </div>
-              <div class="d-flex justify-space-between ga-2">
+              <div class="flex gap-2">
                 <!-- end -->
                 <v-text-field
                   v-model="formValues.end"
@@ -129,92 +121,63 @@
                 </v-text-field>
                 <!-- end time -->
                 <v-text-field
-                  max-width="35%"
+                  v-if="!formValues.allDay"
+                  max-width="26.1%"
                   v-model="formValues.endTime"
                   :rules="[...timeRules, checkEndTimeValue]"
                   :label="$t('TaskForm.time')"
                   :placeholder="getTimePattern"
                   persistent-placeholder
+                  @update:focused="formValues.filterValue = formValues.endTime"
                 >
-                  <v-icon id="pr-4" class="order-2 cursor-pointer" size="x-small" color="black">mdi-clock-outline</v-icon>
-                  <v-menu
-                    v-model="pickers.open[3]"
-                    :close-on-content-click="false"
-                    activator="#pr-4"
-                    transition="scale-transition"
-                  >
-                    <v-time-picker
-                      v-model="pickers.endTime"
-                      @update:model-value="formValues.endTime = new Date(`1/1/1 ${pickers.endTime}`).toLocaleString(appLocale, {hour: '2-digit', minute: '2-digit'})"
-                      @update:minute="pickers.open[3] = false"
-                      :format="appLocale == 'en' ? 'ampm' : '24hr'"
-                      :ampm-in-title="appLocale == 'en' ? true : false"
-                      color="primary"
-                      title="TaskForm.selectTime"
-                    ></v-time-picker>
-                      <!-- :min="checkDays(changeDateFormat(formValues.start), changeDateFormat(formValues.end)) ? (checkValidTime(pickers.startTime) ? pickers.startTime : null) : null" -->
+                  <v-menu activator="parent" height="auto" max-height="200" v-if="timesEnFiltered.length > 0">
+                    <v-list>
+                      <v-list-item
+                        v-for="(item, index) in (appLocale == 'en' ? timesEnFiltered : timesRuFiltered)"
+                        :key="index"
+                        :value="index"
+                        @click="formValues.endTime = item"
+                      >
+                        <v-list-item-title>{{ item }}</v-list-item-title>
+                      </v-list-item>
+                    </v-list>
                   </v-menu>
                 </v-text-field>
               </div>
             </div>
-            <div v-if="formValues.allDay">
-              <!-- date -->
-              <v-text-field
-                width="100%"
-                v-model="formValues.start"
-                required
-                :rules="allDayDateRules"
-                :label="$t('TaskForm.date')"
-                :placeholder="getDatePattern"
-                persistent-placeholder
-              >
-                <v-icon id="pr-5" class="order-2 cursor-pointer" size="x-small" color="black">mdi-calendar-blank</v-icon>
-                <v-menu
-                  v-model="pickers.open[4]"
-                  activator="#pr-5"
-                  :close-on-content-click="false"
-                  transition="scale-transition"
-                >
-                  <v-date-picker
-                    v-model="pickers.start"
-                    elevation="5"
-                    @update:model-value="formValues.start = pickers.start.toLocaleDateString(appLocale, {year: 'numeric', month: '2-digit', day: '2-digit'}); pickers.open[4] = false"
-                    color="primary"
-                  ></v-date-picker>
-                </v-menu>
-              </v-text-field>
-            </div>
+            <!-- all day -->
             <div>
               <v-checkbox v-model="formValues.allDay" :label="$t('TaskForm.allDay')" hide-details></v-checkbox>
             </div>
           </v-form>
-          <div class="flex h-[1px] bg-black opacity-[0.12] mx-n12"></div>
+
+          <!-- divider -->
+          <Divider class="mx-n12" />
+
           <!-- additional -->
           <div class="mt-4">
             <!-- repeats -->
-            <div>
-              <div class="flex gap-1">
-                <div class="w-10 h-10 p-[10px]">
-                  <v-icon size="small" class="mb-2">mdi-refresh</v-icon>
-                </div>
-                <div class="flex-grow flex flex-col items-start">
-                  <v-hover>
-                    <template v-slot:default="{ isHovering, props }">
-                      <v-select
-                        v-bind="props"
-                        :items="repeats"
-                        v-model="repeat"
-                        density="compact"
-                        variant="solo"
-                        flat
-                        :bg-color="isHovering ? '#f6f6f6' : 'white'"
-                        v-ripple="{ class: 'rounded' }"
-                        hide-details
-                      >
-                      </v-select>
-                    </template>
-                  </v-hover>
-                </div>
+            <div class="flex gap-1">
+              <div class="w-10 h-10 p-[10px]">
+                <v-icon size="small" class="mb-2">mdi-refresh</v-icon>
+              </div>
+              <div class="flex-grow flex flex-col items-start">
+                <v-hover>
+                  <template v-slot:default="{ isHovering, props }">
+                    <v-select
+                      v-bind="props"
+                      :items="repeats"
+                      v-model="repeat"
+                      density="compact"
+                      variant="solo"
+                      flat
+                      :bg-color="isHovering ? '#f6f6f6' : 'white'"
+                      v-ripple="{ class: 'rounded' }"
+                      hide-details
+                    >
+                    </v-select>
+                  </template>
+                </v-hover>
               </div>
             </div>
             <!-- reminders -->
@@ -276,6 +239,7 @@
             </div>
           </div>
         </v-card-text>
+        <!-- btns -->
         <v-card-actions>
           <v-btn
             v-if="!taskFormEditing"
@@ -318,11 +282,25 @@
 </template>
 
 <script setup>
-import { calendarApi } from '@/scripts/calendar'
-import { changeDateFormat, getDatePattern, getTimePattern, checkDays } from '@/scripts/dates'
+function resetForm() {
+  // form
+  taskForm.value.reset()
+  resetReminders()
+  formValues.value.startTime = ''
+  formValues.value.endTime = ''
+
+  // calendar
+  calendarApi.unselect()
+  // editing
+  isEditingFromForm.value = false
+  taskFormEdited.value = false
+}
+
+import { calendarApi, notificationBody } from '@/scripts/calendar'
+import { changeDateFormat, getDatePattern, getTimePattern, checkDays, timesEnFiltered, timesRuFiltered } from '@/scripts/dates'
 import { appLocale, t } from '@/scripts/locale'
-import { allReminders } from '@/scripts/reminders'
-import { isEditingFromForm, reminderId, reminders, taskFormEdited } from '@/scripts/form'
+import { allReminders, arraysEqual } from '@/scripts/reminders'
+import { formValues, taskFormOpen, taskFormEditing, formattedTask, repeats, isEditingFromForm, reminderId, reminders, taskFormEdited, repeat } from '@/scripts/form'
 
 // reminders
 function createReminderId() {
@@ -336,20 +314,14 @@ function resetReminders() {
   reminderId.value = 0
   reminders.value = []
 }
-// repeats
-const repeat = ref(repeats[0])
 
-import { taskFormOpen, taskFormEditing, formattedTask, repeats } from '@/scripts/form'
+// form
 const taskForm = ref()
-// form values
-import { formValues } from '@/scripts/form'
 // pickers
 const pickers = ref({
   start: null,
   end: null,
-  open: [false, false, false, false, false],
-  startTime: '',
-  endTime: '',
+  open: [false, false, false],
   color: '',
 })
 // color picker
@@ -374,85 +346,67 @@ import {
 } from '@/scripts/validation'
 
 // watchers
-watch(() => formValues.value.start, (newV, oldV) => {
-  if(checkValidDay(newV) == true) {
-    pickers.value.start = new Date(changeDateFormat(newV))
-  }
-  // validation
-  if(taskForm.value && taskFormOpen.value && !formValues.value.allDay) {
-    if(compareStartEnd() == true) {
-      taskForm.value.items[2].validate()
-      taskForm.value.items[4].validate()
-      taskForm.value.items[3].validate()
-      taskForm.value.items[5].validate()
-    } else {
-      taskForm.value.items[3].validate()
-      taskForm.value.items[5].validate()
-    }
-  }
-})
-watch(() => formValues.value.end, (newV, oldV) => {
-  if(checkValidDay(newV) == true) {
-    pickers.value.end = new Date(changeDateFormat(newV))
-  }
-  // validation
-  if(taskForm.value && taskFormOpen.value && !formValues.value.allDay) {
-    if(compareStartEnd() == true) {
-      taskForm.value.items[2].validate()
-      taskForm.value.items[4].validate()
-      taskForm.value.items[3].validate()
-      taskForm.value.items[5].validate()
-    } else {
-      taskForm.value.items[3].validate()
-      taskForm.value.items[5].validate()
-    }
-  }
-  
-})
+// watch(() => formValues.value.start, (newV, oldV) => {
+//   validation
+//   if(taskForm.value && taskFormOpen.value && !formValues.value.allDay) {
+//     if(compareStartEnd()) {
+//       taskForm.value.items[2].validate()
+//       taskForm.value.items[4].validate()
+//     }
+//     taskForm.value.items[3].validate()
+//     taskForm.value.items[5].validate()
+//   }
+//   if(taskForm.value && taskFormOpen.value && formValues.value.allDay) {
+//     taskForm.value.items[2].validate()
+//     taskForm.value.items[3].validate()
+//   }
+// })
+// watch(() => formValues.value.end, (newV, oldV) => {
+//   validation
+//   if(taskForm.value && taskFormOpen.value && !formValues.value.allDay) {
+//     if(compareStartEnd()) {
+//       taskForm.value.items[2].validate()
+//       taskForm.value.items[4].validate()
+//     }
+//     taskForm.value.items[3].validate()
+//     taskForm.value.items[5].validate()
+//   }
+//   if(taskForm.value && taskFormOpen.value && formValues.value.allDay) {
+//     taskForm.value.items[2].validate()
+//     taskForm.value.items[3].validate()
+//   }
+// })
 watch(() => formValues.value.startTime, (newV, oldV) => {
-  if(checkValidTime(newV) == true) {
-    pickers.value.startTime = new Date(`1/1/1 ${newV}`).toLocaleString('ru', { hour: '2-digit', minute: '2-digit' })
-  }
-  if(newV == '' || newV == undefined || newV == null) {
-    pickers.value.startTime = ''
-  }
+  formValues.value.filterValue = newV
   // validation
-  if(taskForm.value && taskFormOpen.value && !formValues.value.allDay) {
-    if(compareStartTimeEndTime() == true) {
-      taskForm.value.items[3].validate()
-      taskForm.value.items[5].validate()
-    }
-  }
+  // if(taskForm.value && taskFormOpen.value && !formValues.value.allDay) {
+  //   if(compareStartTimeEndTime()) {
+  //     taskForm.value.items[3].validate()
+  //     taskForm.value.items[5].validate()
+  //   }
+  // }
 })
 watch(() => formValues.value.endTime, (newV, oldV) => {
-  if(checkValidTime(newV) == true) {
-    pickers.value.endTime = new Date(`1/1/1 ${newV}`).toLocaleString('ru', { hour: '2-digit', minute: '2-digit' })
-  }
-  if(newV == '' || newV == undefined || newV == null) {
-    pickers.value.endTime = ''
-  }
+  formValues.value.filterValue = newV
   // validation
-  if(taskForm.value && taskFormOpen.value && !formValues.value.allDay) {
-    if(compareStartTimeEndTime() == true) {
-      taskForm.value.items[3].validate()
-      taskForm.value.items[5].validate()
-    }
-  }
+  // if(taskForm.value && taskFormOpen.value && !formValues.value.allDay) {
+  //   if(compareStartTimeEndTime()) {
+  //     taskForm.value.items[3].validate()
+  //     taskForm.value.items[5].validate()
+  //   }
+  // }
 })
 
 // funcs
 import { addTask, editTask } from '@/scripts/calendar'
 import { taskInfoOpen, infoTask } from '@/scripts/info'
 import { notify, refreshNotifications } from '~/scripts/notification'
+import { snackbars, snackbarTimeout } from '~/scripts/snackbars'
 
 async function add(isActive) {
   const { valid } = await taskForm.value.validate()
   
   if(valid) {
-    if(!formValues.value.allDay && !formValues.value.endTime && checkDays(changeDateFormat(formValues.value.start), changeDateFormat(formValues.value.end))) {
-      formValues.value.endTime = '01:00'
-    }
-
     // done
     if(reminders.value.length > 0) {
       for(const reminder of reminders.value) {
@@ -462,6 +416,10 @@ async function add(isActive) {
       }
     }
 
+    if(formValues.value.allDay) {
+      // allday issue
+      formValues.value.end = new Date(new Date(formValues.value.end).getTime()+1*24*3600*1000).toLocaleDateString(appLocale.value, { year: 'numeric', month: 'numeric', day: 'numeric' })
+    }
     let taskId = addTask(formattedTask.value, reminders.value)
 
     // send notification
@@ -474,7 +432,7 @@ async function add(isActive) {
           notify(
             {
               title: formValues.value.title,
-              body: `${formattedTask.value.start} - ${formattedTask.value.end}`
+              body: notificationBody(formattedTask.value),
             },
             time,
             {
@@ -486,6 +444,13 @@ async function add(isActive) {
       }
     }
 
+    // snackbar
+    snackbars.value[2].open = false
+    snackbars.value[2].open = true
+    snackbars.value[2].title = formValues.value.title
+    snackbars.value[2].text = 'added'
+
+    // close
     isActive.value = false
   }
 }
@@ -494,10 +459,6 @@ async function edit(isActive) {
   const { valid } = await taskForm.value.validate()
 
   if(valid) {
-    if(!formValues.value.allDay && !formValues.value.endTime && checkDays(changeDateFormat(formValues.value.start), changeDateFormat(formValues.value.end))) {
-      formValues.value.endTime = '01:00'
-    }
-
     // done
     if(reminders.value.length > 0) {
       for(const reminder of reminders.value) {
@@ -507,10 +468,14 @@ async function edit(isActive) {
       }
     }
 
+    if(formValues.value.allDay) {
+      // allday issue 
+      formValues.value.end = new Date(new Date(formValues.value.end).getTime()+1*24*3600*1000).toLocaleDateString(appLocale.value, { year: 'numeric', month: 'numeric', day: 'numeric' })
+    }
     editTask(formattedTask.value, reminders.value)
 
     // resend
-    if(taskFormEdited.value && reminders.value.length > 0) {
+    if(taskFormEdited.value) {
       const notifications = []
 
       for(const reminder of reminders.value) {
@@ -518,11 +483,10 @@ async function edit(isActive) {
         let isFuture = time.getTime() >= Date.now()
         
         if(isFuture) {
-          
           notifications.push({
             notification: {
               title: formattedTask.value.title,
-              body: `${formattedTask.value.start} - ${formattedTask.value.end}`,
+              body: notificationBody(formattedTask.value),
             },
             time: time,
             ids: {
@@ -536,6 +500,17 @@ async function edit(isActive) {
       refreshNotifications(infoTask.value.id, notifications)
     }
 
+    if(reminders.value.length > 0 && (formattedTask.value.start.getTime() != infoTask.value.start.getTime() || !arraysEqual(infoTask.value.extendedProps.reminders, reminders.value))) {
+      let title = formattedTask.value.title
+
+      setTimeout(() => {
+        snackbars.value[4].open = false
+        snackbars.value[4].open = true
+        snackbars.value[4].title = title
+      }, snackbarTimeout.value)
+    }
+
+    // close
     isActive.value = false
     taskInfoOpen.value = false
   }

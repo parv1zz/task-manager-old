@@ -10,7 +10,7 @@
         <v-card-subtitle v-if="infoTask.allDay">{{ $t('TaskForm.allDay') }}</v-card-subtitle>
         <v-card-text class="py-1">
           <!-- info -->
-          <v-list-item class="px-3" :class="infoTask.extendedProps.reminders.length > 0 ? 'mb-4' : ''">
+          <v-list-item class="px-3 mb-4">
             <template v-slot:prepend>
               <v-list-item-action start>
                 <v-badge class="mx-n1" inline :color="infoTask.backgroundColor"></v-badge>
@@ -19,13 +19,17 @@
             <v-list-item-title>
               <span class="text-[22px]">{{ infoTask.title }}</span>
             </v-list-item-title>
+            <!-- {{ infoTask }} -->
             <v-list-item-subtitle class="mt-1" opacity="1">
               <!-- all day -->
-              <div v-if="infoTask.allDay" class="text-sm">{{ infoTask.start.toLocaleString(appLocale, {day: 'numeric', month: 'short', year: 'numeric'}) }}</div>
+              <div v-if="infoTask.allDay" class="text-sm">
+                <span>{{ infoTask.start.toLocaleString(appLocale, {day: 'numeric', month: 'numeric', year: 'numeric'}) }}</span>
+                <span v-if="!checkDays(infoTask.start, infoTask.end)"> - {{ infoTask.end.toLocaleString(appLocale, {day: 'numeric', month: 'numeric', year: 'numeric'}) }}</span>
+              </div>
               <!-- one day -->
               <div v-if="(!infoTask.allDay && checkDays(infoTask.start, infoTask.end))" class="text-sm">
                 <!-- date -->
-                <span>{{ infoTask.start.toLocaleString(appLocale, {day: 'numeric', month: 'short', year: 'numeric'}) }} • </span>
+                <span>{{ infoTask.start.toLocaleString(appLocale, {day: 'numeric', month: 'numeric', year: 'numeric'}) }}, </span>
                 <!-- time start -->
                 <span class="font-bold">{{ infoTask.start.toLocaleString(appLocale, { hour: 'numeric', minute: 'numeric', hour12: appLocale == 'en' }) }}</span>
                 <span> - </span>
@@ -37,17 +41,28 @@
               <!-- many days -->
               <div v-if="(!infoTask.allDay && !checkDays(infoTask.start, infoTask.end))" class="text-sm">
                 <!-- start date -->
-                <span>{{ infoTask.start.toLocaleString(appLocale, {day: 'numeric', month: 'short', year: 'numeric'}) }}</span>
+                <span>{{ infoTask.start.toLocaleString(appLocale, {day: 'numeric', month: 'numeric', year: 'numeric'}) }}, </span>
                 <!-- start time -->
                 <span class="font-bold">{{ ' ' + infoTask.start.toLocaleString(appLocale, { hour: 'numeric', minute: 'numeric', hour12: appLocale == 'en' }) }}</span>
                 <!-- end date -->
-                <span> - {{ infoTask.end.toLocaleString(appLocale, {day: 'numeric', month: 'short', year: 'numeric'}) }}</span>
+                <span> - {{ infoTask.end.toLocaleString(appLocale, {day: 'numeric', month: 'numeric', year: 'numeric'}) }}, </span>
                 <!-- end time -->
                 <span class="font-bold">{{ ' ' + infoTask.end.toLocaleString(appLocale, { hour: 'numeric', minute: 'numeric', hour12: appLocale == 'en' }) }}</span>
                 <!-- duration -->
                 <span class="text-sm font-bold" v-if="!infoTask.allDay"> ({{ getDatesDuration(infoTask.start, infoTask.end) }})</span>
               </div>
             </v-list-item-subtitle>
+          </v-list-item>
+          <!-- desc -->
+          <v-list-item class="px-3">
+            <template v-slot:prepend>
+              <v-list-item-action start>
+                <v-icon size="small">mdi-menu</v-icon>
+              </v-list-item-action>
+            </template>
+            <v-list-item-title class="flex flex-wrap gap-1">
+              <span>qwr qewrqwerqwer qwerqwerqw qweqwe qwerwqer qw qwerqwerwqer qw.</span>
+            </v-list-item-title>
           </v-list-item>
           <!-- reminders -->
           <v-list-item class="px-3" v-if="infoTask.extendedProps.reminders.length > 0">
@@ -78,8 +93,7 @@ import { checkDays, getDatesDuration } from '@/scripts/dates'
 import { appLocale } from '@/scripts/locale'
 import { deleteTask } from '@/scripts/calendar'
 import { refreshNotifications } from '~/scripts/notification'
-
-const a = ref()
+import { snackbars } from '~/scripts/snackbars'
 
 function editTaskClick() {
   isEditingFromForm.value = true
@@ -89,13 +103,12 @@ function editTaskClick() {
   formValues.value.title = infoTask.value.title
   formValues.value.color = infoTask.value.backgroundColor
   formValues.value.allDay = infoTask.value.allDay
-  formValues.value.start = infoTask.value.start.toLocaleDateString(appLocale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
-  formValues.value.end = infoTask.value.start.toLocaleDateString(appLocale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
+  formValues.value.start = infoTask.value.start.toLocaleDateString(appLocale.value, {year: 'numeric', month: 'numeric', day: 'numeric'})
+  formValues.value.end = infoTask.value.end.toLocaleDateString(appLocale.value, {year: 'numeric', month: 'numeric', day: 'numeric'})
 
   if(!infoTask.value.allDay) {
-    formValues.value.startTime = infoTask.value.start.toLocaleString(appLocale.value, {hour: '2-digit', minute: '2-digit'})
-    formValues.value.endTime = infoTask.value.end.toLocaleString(appLocale.value, {hour: '2-digit', minute: '2-digit'})
-    formValues.value.end = infoTask.value.end.toLocaleDateString(appLocale.value, {year: 'numeric', month: '2-digit', day: '2-digit'})
+    formValues.value.startTime = infoTask.value.start.toLocaleString(appLocale.value, {hour: 'numeric', minute: 'numeric'})
+    formValues.value.endTime = infoTask.value.end.toLocaleString(appLocale.value, {hour: 'numeric', minute: 'numeric'})
   }
 
   if(infoTask.value.extendedProps.reminders.length > 0) {
@@ -108,5 +121,11 @@ function deleteTaskClick(isActive) {
   refreshNotifications(infoTask.value.id, [])
   deleteTask(infoTask.value)
   isActive.value = false
+
+  // snackbar
+  snackbars.value[3].open = false
+  snackbars.value[3].open = true
+  snackbars.value[3].title = infoTask.value.title
+  snackbars.value[3].text = 'deleted'
 }
 </script>
